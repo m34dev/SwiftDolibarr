@@ -82,8 +82,10 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
     enum CodingKeys: String, CodingKey {
 		case dateIntervene = "datei"
 		case durationSeconds = "duration"
+        case durationSecondsV21 = "duree"
         case interventionId = "fk_fichinter"
-        case description = "desc"
+        case desc = "desc"
+        case description = "description"
     }
 
     // MARK: - Inits
@@ -112,8 +114,11 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
 			self.dateIntervene = try container.decode(Int.self, forKey: .dateIntervene)
 			self.durationSeconds = try container.decode(String.self, forKey: .durationSeconds)
             self.interventionId = try container.decode(String.self, forKey: .interventionId)
-            self.description = try container.decodeIfPresent(String.self, forKey: .description)
+            self.description = try container.decodeIfPresent(String.self, forKey: .desc)
 			try super.init(from: decoder)
+            if self.durationSeconds.isEmpty {
+                self.durationSeconds = try container.decode(String.self, forKey: .durationSecondsV21)
+            }
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
             Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
             #endif
@@ -162,6 +167,7 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(dateIntervene, forKey: .dateIntervene)
         try container.encode(durationSeconds, forKey: .durationSeconds)
+        try container.encode(durationSeconds, forKey: .durationSecondsV21)
         try container.encode(interventionId, forKey: .interventionId)
 		try container.encodeIfPresent(description, forKey: .description)
 		try super.encode(to: encoder)
