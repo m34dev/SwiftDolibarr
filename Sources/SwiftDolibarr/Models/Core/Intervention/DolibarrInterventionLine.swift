@@ -44,7 +44,7 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
 
 	/// Intervention line date (Unix timestamp)
 	///
-	/// - Mapped Dolibarr property: **datei**
+	/// - Mapped Dolibarr property: **date** or **datei (deprecated)**
 	public var dateIntervene: Int
 
 	/// Intervention line duration in seconds
@@ -80,12 +80,13 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
     // MARK: - Enums
 
     enum CodingKeys: String, CodingKey {
+        case date = "date"
 		case dateIntervene = "datei"
 		case durationSeconds = "duration"
         case durationSecondsV21 = "duree"
         case interventionId = "fk_fichinter"
-        case desc = "desc"
-        case description = "description"
+        case desccriptionDecode = "desc"
+        case descriptionEncode = "description"
     }
 
     // MARK: - Inits
@@ -111,10 +112,10 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
             Logger.logWithoutSignal("\(Self.self).init.decode", category: .api)
             #endif
             let container = try decoder.container(keyedBy: CodingKeys.self)
-			self.dateIntervene = try container.decode(Int.self, forKey: .dateIntervene)
+			self.dateIntervene = try container.decode(Int.self, forKey: .date)
 			self.durationSeconds = try container.decode(String.self, forKey: .durationSeconds)
             self.interventionId = try container.decode(String.self, forKey: .interventionId)
-            self.description = try container.decodeIfPresent(String.self, forKey: .desc)
+            self.description = try container.decodeIfPresent(String.self, forKey: .desccriptionDecode)
 			try super.init(from: decoder)
             if self.durationSeconds.isEmpty {
                 self.durationSeconds = try container.decode(String.self, forKey: .durationSecondsV21)
@@ -165,11 +166,11 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
 
     override public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(dateIntervene, forKey: .dateIntervene)
+        try container.encode(dateIntervene, forKey: .date)
         try container.encode(durationSeconds, forKey: .durationSeconds)
         try container.encode(durationSeconds, forKey: .durationSecondsV21)
         try container.encode(interventionId, forKey: .interventionId)
-		try container.encodeIfPresent(description, forKey: .description)
+		try container.encodeIfPresent(description, forKey: .descriptionEncode)
 		try super.encode(to: encoder)
     }
 
