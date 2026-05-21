@@ -72,12 +72,12 @@ public final class DolibarrIntervention: CommonBusinessObject {
 	/// Intervention start date (Unix timestamp)
 	///
 	/// - Mapped Dolibarr property: **dateo**
-	public var dateStart: Double?
+	public var dateStart: Int?
 
 	/// Intervention end date (Unix timestamp)
 	///
 	/// - Mapped Dolibarr property: **datee**
-	public var dateEnd: Double?
+	public var dateEnd: Int?
 
 	/// Intervention duration in seconds
 	///
@@ -195,8 +195,8 @@ public final class DolibarrIntervention: CommonBusinessObject {
 		lines: [DolibarrInterventionLine] = [],
 		contractId: String? = nil,
 		projectId: String? = nil,
-		dateStart: Double? = nil,
-		dateEnd: Double? = nil,
+		dateStart: Int? = nil,
+		dateEnd: Int? = nil,
 		durationSeconds: String? = nil,
 		description: String? = nil,
 		clientRef: String? = nil,
@@ -248,8 +248,8 @@ public final class DolibarrIntervention: CommonBusinessObject {
 			self.lines = try container.decode([DolibarrInterventionLine].self, forKey: .lines)
 			self.contractId = try container.decodeIfPresent(String.self, forKey: .contractId)
 			self.projectId = try container.decodeIfPresent(String.self, forKey: .projectId)
-			self.dateStart = try container.decodeIfPresent(MultiType.self, forKey: .dateStart)?.doubleValue
-			self.dateEnd = try container.decodeIfPresent(MultiType.self, forKey: .dateEnd)?.doubleValue
+			self.dateStart = try container.decodeIfPresent(MultiType.self, forKey: .dateStart)?.intValue
+			self.dateEnd = try container.decodeIfPresent(MultiType.self, forKey: .dateEnd)?.intValue
 			self.durationSeconds = try container.decodeIfPresent(String.self, forKey: .durationSeconds)
 			self.description = try container.decodeIfPresent(String.self, forKey: .description)
 			self.clientRef = try container.decodeIfPresent(String.self, forKey: .clientRef)
@@ -258,7 +258,7 @@ public final class DolibarrIntervention: CommonBusinessObject {
 			self.internalContactIds = try container.decodeIfPresent([[String: MultiType]].self, forKey: .internalContactIds)
 			self.dateCreate = try container.decodeIfPresent(Int.self, forKey: .dateCreate)
 			self.dateModify = try container.decodeIfPresent(Int.self, forKey: .dateModify)
-			self.dateValidate = try container.decodeIfPresent(Int.self, forKey: .dateValidate)
+            self.dateValidate = try container.decodeIfPresent(MultiType.self, forKey: .dateValidate)?.intValue
 			try super.init(from: decoder)
 			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
