@@ -85,8 +85,8 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
 		case durationSeconds = "duration"
         case durationSecondsV21 = "duree"
         case interventionId = "fk_fichinter"
-        case desccriptionDecode = "desc"
-        case descriptionEncode = "description"
+        case desc = "desc"
+        case description = "description"
     }
 
     // MARK: - Inits
@@ -115,7 +115,7 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
 			self.dateIntervene = try container.decode(Int.self, forKey: .date)
 			self.durationSeconds = try container.decode(String.self, forKey: .durationSeconds)
             self.interventionId = try container.decode(String.self, forKey: .interventionId)
-            self.description = try container.decodeIfPresent(String.self, forKey: .desccriptionDecode)
+            self.description = try container.decodeIfPresent(String.self, forKey: .desc)
 			try super.init(from: decoder)
             if self.durationSeconds.isEmpty {
                 self.durationSeconds = try container.decode(String.self, forKey: .durationSecondsV21)
@@ -170,7 +170,8 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
         try container.encode(durationSeconds, forKey: .durationSeconds)
         try container.encode(durationSeconds, forKey: .durationSecondsV21)
         try container.encode(interventionId, forKey: .interventionId)
-		try container.encodeIfPresent(description, forKey: .descriptionEncode)
+		try container.encodeIfPresent(description, forKey: .description)
+        try container.encodeIfPresent(description, forKey: .desc)
 		try super.encode(to: encoder)
     }
 
