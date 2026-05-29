@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.46.0] - 2026-05-29
+
+### Added
+- Dolibarr extrafield
+- Business object extrafield encoding
+
+## [0.45.0] - 2026-05-26
+
+### Changed
+- Fixed DolibarrIntervention decoding/encoding
+
 ## [0.44.0] - 2026-05-21
 
 ### Changed
@@ -62,13 +73,13 @@ and this project adheres to [Semantic Versioning](https://semver.org) using the 
 
 ## [0.34.0] - 2026-04-28
 
-### Added
-- Fixed LaReponse article content property type
+### Fixed
+- LaReponse article content property type
 
 ## [0.33.0] - 2026-04-27
 
-### Added
-- Fixed LaReponse article and comment protocols
+### Fixed
+- LaReponse article and comment protocols
 
 ## [0.32.0] - 2026-04-27
 
