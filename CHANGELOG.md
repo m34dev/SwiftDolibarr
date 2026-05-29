@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org) using the 
 
 ### Added
 - Dolibarr extrafield
+- Business object extrafield encoding
 
 ## [0.45.0] - 2026-05-26
 

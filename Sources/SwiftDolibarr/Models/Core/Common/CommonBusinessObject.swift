@@ -171,6 +171,7 @@ public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 		hasher.combine(id)
 		hasher.combine(statusCode)
 		hasher.combine(optional: entityId)
+        hasher.combine(optional: arrayOptions)
 		hasher.combine(optional: notePublic)
 		hasher.combine(optional: notePrivate)
 	}
@@ -180,6 +181,7 @@ public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 		try container.encodeIfNotEmpty(id, forKey: .id)
 		try container.encodeIfNotEmpty(statusCode, forKey: .statusCode)
 		try container.encodeIfPresentAndNotEmpty(entityId, forKey: .entityId)
+        try container.encodeIfPresent(arrayOptions, forKey: .arrayOptions)
 		try container.encodeIfPresent(notePublic, forKey: .notePublic)
 		try container.encodeIfPresent(notePrivate, forKey: .notePrivate)
 	}
