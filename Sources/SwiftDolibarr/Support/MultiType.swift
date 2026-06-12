@@ -76,6 +76,18 @@ public enum MultiType: Codable, Hashable {
         self = .string("")
     }
 
+    public init(_ value: String) {
+        self = .string(value)
+    }
+
+    public init(_ value: Int) {
+        self = .int(value)
+    }
+
+    public init(_ value: Double) {
+        self = .double(value)
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if let value = try? container.decode(String.self) {

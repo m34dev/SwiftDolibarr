@@ -169,22 +169,23 @@ public struct DolibarrExtrafield: Hashable, Decodable, Sendable, DolibarrObject 
 
 /// Top-level response wrapper for `/setup/extrafields`.
 ///
-/// Decodes the nested JSON structure (element type → field name → extrafield)
-/// into an ordered array of ``DolibarrExtrafieldGroup`` for convenient
-/// iteration.
+/// Preserves the nested JSON structure (element type → field name →
+/// extrafield) so the original Dolibarr keys (e.g. `fichinter` →
+/// `extrafield`) remain accessible directly.
 ///
-/// - SeeAlso: ``DolibarrExtrafield``, ``DolibarrExtrafieldGroup``
+/// - SeeAlso: ``DolibarrExtrafield``
 public struct DolibarrExtrafields: Hashable, Decodable, Sendable {
 
     // MARK: - Properties
 
-    /// Extrafield groups, one per Dolibarr element type.
-    public var elementGroups: [DolibarrExtrafieldGroup]
+    /// Extrafields keyed by element type, then by field name, matching the
+    /// original JSON structure.
+    public var elements: [String: [String: DolibarrExtrafield]]
 
     // MARK: - Inits
 
-    public init(elementGroups: [DolibarrExtrafieldGroup] = []) {
-        self.elementGroups = elementGroups
+    public init(elements: [String: [String: DolibarrExtrafield]] = [:]) {
+        self.elements = elements
     }
 
     public init(from decoder: any Decoder) throws {
@@ -193,13 +194,7 @@ public struct DolibarrExtrafields: Hashable, Decodable, Sendable {
             Logger.logWithoutSignal("\(Self.self).init.decode", category: .api)
             #endif
             let container = try decoder.singleValueContainer()
-            let raw = try container.decode([String: [String: DolibarrExtrafield]].self)
-            self.elementGroups = raw.map { elementType, fields in
-                DolibarrExtrafieldGroup(
-                    elementType: elementType,
-                    fields: Array(fields.values)
-                )
-            }
+            self.elements = try container.decode([String: [String: DolibarrExtrafield]].self)
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
             Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
             #endif
@@ -214,35 +209,6 @@ public struct DolibarrExtrafields: Hashable, Decodable, Sendable {
             #endif
             throw error
         }
-    }
-
-}
-
-/// A group of extrafields attached to the same Dolibarr element type.
-///
-/// Produced when decoding a ``DolibarrExtrafields`` response — one group is
-/// created per top-level JSON key (the element type, e.g. `societe`).
-///
-/// - SeeAlso: ``DolibarrExtrafield``, ``DolibarrExtrafields``
-public struct DolibarrExtrafieldGroup: Hashable, Sendable {
-
-    // MARK: - Properties
-
-    /// The Dolibarr element type these extrafields are attached to
-    /// (e.g. `societe`, `facture`, `commande`, `product`).
-    public var elementType: String
-
-    /// The extrafields defined for this element type.
-    public var fields: [DolibarrExtrafield]
-
-    // MARK: - Inits
-
-    public init(
-        elementType: String = "",
-        fields: [DolibarrExtrafield] = []
-    ) {
-        self.elementType = elementType
-        self.fields = fields
     }
 
 }
