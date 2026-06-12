@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org) using the 
 
 ## [0.50.0] - 2026-06-12
 
+### Added
+- Dolibarr common business object line extrafields
+
 ### Changed
 - Updated Dolibarr extrafields init for empty array when no extrafields are configured
 
