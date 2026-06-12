@@ -217,7 +217,11 @@ public struct DolibarrExtrafields: Hashable, Decodable, Sendable {
             Logger.logWithoutSignal("\(Self.self).init.decode", category: .api)
             #endif
             let container = try decoder.singleValueContainer()
-            self.elements = try container.decode([String: [String: DolibarrExtrafield]].self)
+            if let empty = try? container.decode([String].self), empty.isEmpty { // Workaround for Dolibarr returning empty array [] when no extrafields are configured.
+                self.elements = [:]
+            } else {
+                self.elements = try container.decode([String: [String: DolibarrExtrafield]].self)
+            }
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
             Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
             #endif
