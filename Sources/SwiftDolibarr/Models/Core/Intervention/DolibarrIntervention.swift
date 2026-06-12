@@ -126,6 +126,16 @@ public final class DolibarrIntervention: CommonBusinessObject {
     ///
     /// - Mapped Dolibarr property: **datet**
     public var dateClose: Int?
+    
+    /// Intervention creator user ID
+    ///
+    /// - Mapped Dolibarr property: **user_author_id**
+    public var userCreateId: String?
+
+    /// Intervention last modifier user ID
+    ///
+    /// - Mapped Dolibarr property: **user_modification_id**
+    public var userModifyId: String?
 
 	// Computed
 
@@ -197,6 +207,8 @@ public final class DolibarrIntervention: CommonBusinessObject {
 		case dateModify = "datem"
 		case dateValidate = "datev"
         case dateClose = "datet"
+        case userCreateId = "user_author_id"
+        case userModifyId = "user_modification_id"
 	}
 
 	// MARK: - Inits
@@ -219,6 +231,8 @@ public final class DolibarrIntervention: CommonBusinessObject {
 		dateModify: Int? = nil,
 		dateValidate: Int? = nil,
         dateClose: Int? = nil,
+        userCreateId: String? = nil,
+        userModifyId: String? = nil,
 		id: String = "",
 		statusCode: String = "",
 		arrayOptions: [String: MultiType]? = nil,
@@ -242,6 +256,8 @@ public final class DolibarrIntervention: CommonBusinessObject {
 		self.dateModify = dateModify
 		self.dateValidate = dateValidate
         self.dateClose = dateClose
+        self.userCreateId = userCreateId
+        self.userModifyId = userModifyId
 		super.init(
 			id: id,
 			statusCode: statusCode,
@@ -274,6 +290,8 @@ public final class DolibarrIntervention: CommonBusinessObject {
 			self.dateModify = try container.decodeIfPresent(Int.self, forKey: .dateModify)
             self.dateValidate = try container.decodeIfPresent(MultiType.self, forKey: .dateValidate)?.intValue
             self.dateClose = try container.decodeIfPresent(MultiType.self, forKey: .dateClose)?.intValue
+            self.userCreateId = try container.decodeIfPresent(String.self, forKey: .userCreateId)
+            self.userModifyId = try container.decodeIfPresent(String.self, forKey: .userModifyId)
 			try super.init(from: decoder)
 			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
@@ -309,6 +327,8 @@ public final class DolibarrIntervention: CommonBusinessObject {
         self.dateModify = source.dateModify
         self.dateValidate = source.dateValidate
         self.dateClose = source.dateClose
+        self.userCreateId = source.userCreateId
+        self.userModifyId = source.userModifyId
         super.init(copying: source)
     }
     
@@ -332,6 +352,8 @@ public final class DolibarrIntervention: CommonBusinessObject {
         self.dateModify = source.dateModify
         self.dateValidate = source.dateValidate
         self.dateClose = source.dateClose
+        self.userCreateId = source.userCreateId
+        self.userModifyId = source.userModifyId
         super.copy(source)
     }
 
@@ -355,6 +377,8 @@ public final class DolibarrIntervention: CommonBusinessObject {
 		hasher.combine(optional: dateModify)
 		hasher.combine(optional: dateValidate)
         hasher.combine(optional: dateClose)
+        hasher.combine(optional: userCreateId)
+        hasher.combine(optional: userModifyId)
 		super.hash(into: &hasher)
 	}
 
@@ -374,6 +398,8 @@ public final class DolibarrIntervention: CommonBusinessObject {
 		try container.encodeIfPresent(dateModify, forKey: .dateModify)
 		try container.encodeIfPresent(dateValidate, forKey: .dateValidate)
         try container.encodeIfPresent(dateClose, forKey: .dateClose)
+        try container.encodeIfPresent(userCreateId, forKey: .userCreateId)
+        try container.encodeIfPresent(userModifyId, forKey: .userModifyId)
 		try super.encode(to: encoder)
 	}
 
