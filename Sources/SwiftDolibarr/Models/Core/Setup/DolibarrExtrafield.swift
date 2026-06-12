@@ -88,6 +88,13 @@ public struct DolibarrExtrafield: Hashable, Decodable, Sendable, DolibarrObject 
     /// Mapped Dolibarr property: **list**
     public var visibility: String?
 
+    /// Options for choice-style extrafields (e.g. `select`, `radio`,
+    /// `checkbox`), keyed by stored value with the display label as the
+    /// value.
+    ///
+    /// Mapped Dolibarr property: **param.options**
+    public var options: [String: String]?
+
     // MARK: - Enums
 
     enum CodingKeys: String, CodingKey {
@@ -102,6 +109,11 @@ public struct DolibarrExtrafield: Hashable, Decodable, Sendable, DolibarrObject 
         case unique
         case position = "pos"
         case visibility = "list"
+        case param
+    }
+
+    enum ParamKeys: String, CodingKey {
+        case options
     }
 
     // MARK: - Inits
@@ -117,7 +129,8 @@ public struct DolibarrExtrafield: Hashable, Decodable, Sendable, DolibarrObject 
         required: String? = nil,
         unique: String? = nil,
         position: String? = nil,
-        visibility: String? = nil
+        visibility: String? = nil,
+        options: [String: String]? = nil
     ) {
         self.id = id
         self.type = type
@@ -130,6 +143,7 @@ public struct DolibarrExtrafield: Hashable, Decodable, Sendable, DolibarrObject 
         self.unique = unique
         self.position = position
         self.visibility = visibility
+        self.options = options
     }
 
     public init(from decoder: any Decoder) throws {
@@ -149,6 +163,15 @@ public struct DolibarrExtrafield: Hashable, Decodable, Sendable, DolibarrObject 
             self.unique = try container.decodeIfPresent(String.self, forKey: .unique)
             self.position = try container.decodeIfPresent(String.self, forKey: .position)
             self.visibility = try container.decodeIfPresent(String.self, forKey: .visibility)
+            if let paramContainer = try? container.nestedContainer(keyedBy: ParamKeys.self, forKey: .param),
+               let rawOptions = try? paramContainer.decodeIfPresent([String: String?].self, forKey: .options) {
+                let cleaned = rawOptions
+                    .compactMapValues { $0 }
+                    .filter { !$0.key.isEmpty }
+                self.options = cleaned.isEmpty ? nil : cleaned
+            } else {
+                self.options = nil
+            }
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
             Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
             #endif
