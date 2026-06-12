@@ -26,8 +26,9 @@ import OSLog
 
 /// Base class for all Dolibarr business object line items.
 ///
-/// Provides shared ``id`` and ``rang`` (sort order) properties with
-/// coding logic. Subclasses add domain-specific line item fields.
+/// Provides shared ``id``, ``rang`` (sort order), and ``arrayOptions``
+/// (extra fields) properties with coding logic. Subclasses add
+/// domain-specific line item fields.
 ///
 /// - SeeAlso: ``CommonCommercialTransactionObjectLine``
 /// - SeeAlso: ``DolibarrInterventionLine``
@@ -45,11 +46,17 @@ public class CommonBusinessObjectLine: Equatable, Hashable, Codable, DolibarrObj
 
 	// Optional
 
+	/// Business object line extra fields
+	///
+	/// - Mapped Dolibarr property: **array_options**
+	public var arrayOptions: [String: MultiType]?
+
 	// MARK: - Enums
 
 	enum CodingKeys: String, CodingKey {
 		case id
 		case rang
+		case arrayOptions = "array_options"
 	}
 
 	// MARK: - Inits
@@ -57,9 +64,11 @@ public class CommonBusinessObjectLine: Equatable, Hashable, Codable, DolibarrObj
 	public init(
 		id: String = "",
 		rang: String = "",
+		arrayOptions: [String: MultiType]? = nil
 	) {
 		self.id = id
 		self.rang = rang
+		self.arrayOptions = arrayOptions
 	}
 
 	public required init(from decoder: Decoder) throws {
@@ -70,6 +79,11 @@ public class CommonBusinessObjectLine: Equatable, Hashable, Codable, DolibarrObj
 			let container = try decoder.container(keyedBy: CodingKeys.self)
 			id = try container.decode(String.self, forKey: .id)
 			rang = try container.decode(String.self, forKey: .rang)
+			if let dictArrayOptions = try? container.decode([String: MultiType].self, forKey: .arrayOptions) {
+				self.arrayOptions = dictArrayOptions
+			} else {
+				self.arrayOptions = nil
+			}
 			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
 			#endif
@@ -89,6 +103,7 @@ public class CommonBusinessObjectLine: Equatable, Hashable, Codable, DolibarrObj
     public init(copying source: CommonBusinessObjectLine) {
         self.id = source.id
         self.rang = source.rang
+        self.arrayOptions = source.arrayOptions
     }
 
     // MARK: - Methods
@@ -96,6 +111,7 @@ public class CommonBusinessObjectLine: Equatable, Hashable, Codable, DolibarrObj
     public func copy(_ source: CommonBusinessObjectLine) {
         self.id = source.id
         self.rang = source.rang
+        self.arrayOptions = source.arrayOptions
     }
 
 	// MARK: - Protocol methods
@@ -103,12 +119,14 @@ public class CommonBusinessObjectLine: Equatable, Hashable, Codable, DolibarrObj
 	public func hash(into hasher: inout Hasher) {
 		hasher.combine(id)
 		hasher.combine(rang)
+		hasher.combine(optional: arrayOptions)
 	}
 
 	public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encodeIfNotEmpty(id, forKey: .id)
 		try container.encode(rang, forKey: .rang)
+		try container.encodeIfPresent(arrayOptions, forKey: .arrayOptions)
 	}
 
 	static public func == (lhs: CommonBusinessObjectLine, rhs: CommonBusinessObjectLine) -> Bool {
