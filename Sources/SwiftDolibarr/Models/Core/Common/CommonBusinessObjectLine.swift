@@ -80,7 +80,11 @@ public class CommonBusinessObjectLine: Equatable, Hashable, Codable, DolibarrObj
 			id = try container.decode(String.self, forKey: .id)
 			rang = try container.decode(String.self, forKey: .rang)
 			if let dictArrayOptions = try? container.decode([String: MultiType].self, forKey: .arrayOptions) {
-				self.arrayOptions = dictArrayOptions
+				self.arrayOptions = Dictionary(
+					uniqueKeysWithValues: dictArrayOptions.map { key, value in
+						(key.hasPrefix("options_") ? String(key.dropFirst("options_".count)) : key, value)
+					}
+				)
 			} else {
 				self.arrayOptions = nil
 			}

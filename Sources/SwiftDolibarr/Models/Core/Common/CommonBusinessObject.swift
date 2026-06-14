@@ -123,7 +123,11 @@ public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 			}
 			self.entityId = try container.decodeIfPresent(String.self, forKey: .entityId)
 			if let dictArrayOptions = try? container.decode([String: MultiType].self, forKey: .arrayOptions) {
-				self.arrayOptions = dictArrayOptions
+				self.arrayOptions = Dictionary(
+					uniqueKeysWithValues: dictArrayOptions.map { key, value in
+						(key.hasPrefix("options_") ? String(key.dropFirst("options_".count)) : key, value)
+					}
+				)
 			} else {
 				self.arrayOptions = nil
 			}

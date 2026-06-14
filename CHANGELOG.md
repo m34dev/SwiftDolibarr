@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.51.0] - 2026-06-14
+
+### Changed
+- Clean extrafields on decode init
+
 ## [0.50.0] - 2026-06-12
 
 ### Added
