@@ -82,6 +82,14 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
 
     /// Article type
     public var typeCode: Int
+    
+    /// Article favorite
+    public var favorite: Int?
+    
+    /// Article entity ID
+    ///
+    /// - Mapped Dolibarr property: **entity**
+    public var entityId: String?
 
     // MARK: - Computed properties
 
@@ -126,6 +134,17 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
             return nil
         }
     }
+    
+    public var isFavorite: Bool? {
+        switch favorite {
+        case 0:
+            return false
+        case 1:
+            return true
+        default:
+            return nil
+        }
+    }
 
     // MARK: - Enums
 
@@ -140,6 +159,8 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
         case visibilityCode = "private"
         case publishToken = "publish_token"
         case typeCode = "type"
+        case favorite
+        case entityId = "entity"
     }
     
     public enum ArticleType {
@@ -165,7 +186,9 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
         content: String? = nil,
         visibilityCode: Int = 0,
         publishToken: String? = nil,
-        typeCode: Int = 0
+        typeCode: Int = 0,
+        favorite: Int = 0,
+        entityId: String = ""
     ) {
         self.id = id
         self.dateCreate = dateCreate
@@ -177,6 +200,8 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
         self.visibilityCode = visibilityCode
         self.publishToken = publishToken
         self.typeCode = typeCode
+        self.favorite = favorite
+        self.entityId = entityId
     }
 
     public required init(from decoder: any Decoder) throws {
@@ -195,6 +220,8 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
             self.visibilityCode = try container.decode(Int.self, forKey: .visibilityCode)
             self.publishToken = try container.decodeIfPresent(String.self, forKey: .publishToken)
             self.typeCode = try container.decode(Int.self, forKey: .typeCode)
+            self.favorite = try container.decodeIfPresent(Int.self, forKey: .favorite)
+            self.entityId = try container.decodeIfPresent(MultiType.self, forKey: .entityId)?.stringValue
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
             Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
             #endif
@@ -222,6 +249,8 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
         self.visibilityCode = source.visibilityCode
         self.publishToken = source.publishToken
         self.typeCode = source.typeCode
+        self.favorite = source.favorite
+        self.entityId = source.entityId
     }
 
     // MARK: - Methods
@@ -237,6 +266,8 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
         self.visibilityCode = source.visibilityCode
         self.publishToken = source.publishToken
         self.typeCode = source.typeCode
+        self.favorite = source.favorite
+        self.entityId = source.entityId
     }
 
     // MARK: - Protocol methods
@@ -252,6 +283,8 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
         hasher.combine(visibilityCode)
         hasher.combine(optional: publishToken)
         hasher.combine(typeCode)
+        hasher.combine(optional: favorite)
+        hasher.combine(optional: entityId)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -266,6 +299,8 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
         try container.encode(visibilityCode, forKey: .visibilityCode)
         try container.encodeIfPresent(publishToken, forKey: .publishToken)
         try container.encode(typeCode, forKey: .typeCode)
+        try container.encodeIfPresent(favorite, forKey: .favorite)
+        try container.encodeIfPresent(entityId, forKey: .entityId)
     }
 
     public static func == (lhs: LaReponseArticle, rhs: LaReponseArticle) -> Bool {
@@ -279,6 +314,8 @@ public final class LaReponseArticle: Hashable, Codable, DolibarrObject {
         && lhs.visibilityCode == rhs.visibilityCode
         && lhs.publishToken == rhs.publishToken
         && lhs.typeCode == rhs.typeCode
+        && lhs.favorite == rhs.favorite
+        && lhs.entityId == rhs.entityId
     }
 
 }
