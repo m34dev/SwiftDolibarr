@@ -29,17 +29,14 @@ import OSLog
 /// Each line represents an individual expense with a fee type, quantity,
 /// unit price, tax rate, and totals.
 ///
-/// - Note: Requires the **Deplacement** module to be activated in Dolibarr.
+/// - Note: Requires the **Expensereport** module to be activated in Dolibarr.
 /// - SeeAlso: ``DolibarrExpenseReport``
 #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 @Observable
 #endif
-public final class DolibarrExpenseReportLine: Identifiable, Hashable, Codable {
+public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
 
     // MARK: - Properties
-
-	/// Expense report line ID
-	public var id: String
 
 	/// Expense report line quantity
 	///
@@ -97,7 +94,6 @@ public final class DolibarrExpenseReportLine: Identifiable, Hashable, Codable {
     // MARK: - Enums
 
     enum CodingKeys: String, CodingKey {
-        case id
         case quantity = "qty"
         case unitPriceInclTax = "value_unit"
         case date = "dates"
@@ -114,7 +110,6 @@ public final class DolibarrExpenseReportLine: Identifiable, Hashable, Codable {
     // MARK: - Inits
 
     public init(
-        id: String,
         quantity: String,
         unitPriceInclTax: String,
         date: Int,
@@ -125,9 +120,10 @@ public final class DolibarrExpenseReportLine: Identifiable, Hashable, Codable {
         totalTax: String,
         totalInclTax: String,
         taxRate: String,
-        comments: String? = nil
+        comments: String? = nil,
+        id: String = "",
+        rang: String = ""
     ) {
-        self.id = id
         self.quantity = quantity
         self.unitPriceInclTax = unitPriceInclTax
         self.date = date
@@ -139,15 +135,15 @@ public final class DolibarrExpenseReportLine: Identifiable, Hashable, Codable {
         self.totalInclTax = totalInclTax
         self.taxRate = taxRate
         self.comments = comments
+        super.init(id: id, rang: rang)
     }
 
-	public init(from decoder: any Decoder) throws {
+	required public init(from decoder: any Decoder) throws {
         do {
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
             Logger.logWithoutSignal("\(Self.self).init.decode", level: .info, category: .api)
             #endif
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.id = try container.decode(String.self, forKey: .id)
             self.quantity = try container.decode(String.self, forKey: .quantity)
             self.unitPriceInclTax = try container.decode(String.self, forKey: .unitPriceInclTax)
             self.date = try container.decode(Int.self, forKey: .date)
@@ -159,6 +155,7 @@ public final class DolibarrExpenseReportLine: Identifiable, Hashable, Codable {
             self.totalInclTax = try container.decode(String.self, forKey: .totalInclTax)
             self.taxRate = try container.decode(String.self, forKey: .taxRate)
             self.comments = try container.decodeIfPresent(String.self, forKey: .comments)
+            try super.init(from: decoder)
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
             Logger.logWithoutSignal("\(Self.self).init.decoded", level: .info, category: .api)
             #endif
@@ -174,11 +171,42 @@ public final class DolibarrExpenseReportLine: Identifiable, Hashable, Codable {
             throw error
         }
     }
+    
+    public init(copying source: DolibarrExpenseReportLine) {
+        self.quantity = source.quantity
+        self.unitPriceInclTax = source.unitPriceInclTax
+        self.date = source.date
+        self.feeTypeId = source.feeTypeId
+        self.feeTypeCode = source.feeTypeCode
+        self.feeTypeLabel = source.feeTypeLabel
+        self.totalExclTax = source.totalExclTax
+        self.totalTax = source.totalTax
+        self.totalInclTax = source.totalInclTax
+        self.taxRate = source.taxRate
+        self.comments = source.comments
+        super.init(copying: source)
+    }
+
+    // MARK: - Methods
+
+    public func copy(_ source: DolibarrExpenseReportLine) {
+        self.quantity = source.quantity
+        self.unitPriceInclTax = source.unitPriceInclTax
+        self.date = source.date
+        self.feeTypeId = source.feeTypeId
+        self.feeTypeCode = source.feeTypeCode
+        self.feeTypeLabel = source.feeTypeLabel
+        self.totalExclTax = source.totalExclTax
+        self.totalTax = source.totalTax
+        self.totalInclTax = source.totalInclTax
+        self.taxRate = source.taxRate
+        self.comments = source.comments
+        super.copy(source)
+    }
 
     // MARK: - Protocol methods
 
-	public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+	override public func hash(into hasher: inout Hasher) {
         hasher.combine(quantity)
 		hasher.combine(unitPriceInclTax)
         hasher.combine(date)
@@ -189,14 +217,12 @@ public final class DolibarrExpenseReportLine: Identifiable, Hashable, Codable {
 		hasher.combine(totalTax)
 		hasher.combine(totalInclTax)
 		hasher.combine(taxRate)
-		if let comments {
-			hasher.combine(comments)
-		}
+        hasher.combine(optional: comments)
+        super.hash(into: &hasher)
     }
 
-	public func encode(to encoder: any Encoder) throws {
+	override public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
 		try container.encode(quantity, forKey: .quantity)
 		try container.encode(unitPriceInclTax, forKey: .unitPriceInclTax)
 		try container.encode(date, forKey: .date)
@@ -208,10 +234,7 @@ public final class DolibarrExpenseReportLine: Identifiable, Hashable, Codable {
 		try container.encode(totalInclTax, forKey: .totalInclTax)
 		try container.encode(taxRate, forKey: .taxRate)
 		try container.encodeIfPresent(comments, forKey: .comments)
-    }
-
-	public static func == (lhs: DolibarrExpenseReportLine, rhs: DolibarrExpenseReportLine) -> Bool {
-        lhs.id == rhs.id
+        try super.encode(to: encoder)
     }
 
 }
