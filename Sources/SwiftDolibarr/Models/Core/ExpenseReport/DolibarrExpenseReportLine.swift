@@ -111,7 +111,8 @@ public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
         case totalExclTax = "total_ht"
         case totalTax = "total_tva"
         case totalInclTax = "total_ttc"
-        case taxRate = "vatrate"
+        case taxRateDecode = "tva_tx"
+		case taxRateEncode = "vatrate"
         case comments
     }
 
@@ -161,7 +162,7 @@ public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
             self.totalExclTax = try container.decode(String.self, forKey: .totalExclTax)
             self.totalTax = try container.decode(String.self, forKey: .totalTax)
             self.totalInclTax = try container.decode(String.self, forKey: .totalInclTax)
-            self.taxRate = try container.decode(String.self, forKey: .taxRate)
+            self.taxRate = try container.decode(String.self, forKey: .taxRateDecode)
             self.comments = try container.decodeIfPresent(String.self, forKey: .comments)
             try super.init(from: decoder)
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
@@ -240,7 +241,7 @@ public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
 		try container.encode(totalExclTax, forKey: .totalExclTax)
 		try container.encode(totalTax, forKey: .totalTax)
 		try container.encode(totalInclTax, forKey: .totalInclTax)
-		try container.encode(taxRate, forKey: .taxRate)
+		try container.encode(taxRate, forKey: .taxRateEncode)
 		try container.encodeIfPresent(comments, forKey: .comments)
         try super.encode(to: encoder)
     }

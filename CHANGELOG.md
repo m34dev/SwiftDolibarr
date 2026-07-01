@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org) using the 
 ### Added
 - Common business object line, Dolibarr expense report line and Dolibarr intervention line equality methods
 
+### Changed
+- Updated Dolibarr expense report line tax rate decoding/encoding
+
 ## [0.55.0] - 2026-07-01
 
 ### Added
