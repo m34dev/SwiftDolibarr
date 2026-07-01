@@ -134,7 +134,9 @@ public class CommonBusinessObjectLine: Equatable, Hashable, Codable, DolibarrObj
 	}
 
 	static public func == (lhs: CommonBusinessObjectLine, rhs: CommonBusinessObjectLine) -> Bool {
-		lhs.id == rhs.id
+		lhs.id == rhs.id &&
+		lhs.rang == rhs.rang &&
+		lhs.arrayOptions == rhs.arrayOptions
 	}
 
 }

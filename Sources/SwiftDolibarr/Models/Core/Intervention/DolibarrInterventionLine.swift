@@ -175,4 +175,12 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
 		try super.encode(to: encoder)
     }
 
+	static public func == (lhs: DolibarrInterventionLine, rhs: DolibarrInterventionLine) -> Bool {
+		lhs.dateIntervene == rhs.dateIntervene &&
+		lhs.durationSeconds == rhs.durationSeconds &&
+		lhs.interventionId == rhs.interventionId &&
+		lhs.description == rhs.description &&
+		(lhs as CommonBusinessObjectLine) == (rhs as CommonBusinessObjectLine)
+	}
+
 }

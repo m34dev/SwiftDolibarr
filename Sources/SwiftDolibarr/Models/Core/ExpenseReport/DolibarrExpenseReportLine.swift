@@ -111,7 +111,7 @@ public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
         case totalExclTax = "total_ht"
         case totalTax = "total_tva"
         case totalInclTax = "total_ttc"
-        case taxRate = "tva_tx"
+        case taxRate = "vatrate"
         case comments
     }
 
@@ -244,5 +244,20 @@ public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
 		try container.encodeIfPresent(comments, forKey: .comments)
         try super.encode(to: encoder)
     }
+
+	static public func == (lhs: DolibarrExpenseReportLine, rhs: DolibarrExpenseReportLine) -> Bool {
+		lhs.quantity == rhs.quantity &&
+		lhs.unitPriceInclTax == rhs.unitPriceInclTax &&
+		lhs.date == rhs.date &&
+		lhs.feeTypeId == rhs.feeTypeId &&
+		lhs.feeTypeCode == rhs.feeTypeCode &&
+		lhs.feeTypeLabel == rhs.feeTypeLabel &&
+		lhs.totalExclTax == rhs.totalExclTax &&
+		lhs.totalTax == rhs.totalTax &&
+		lhs.totalInclTax == rhs.totalInclTax &&
+		lhs.taxRate == rhs.taxRate &&
+		lhs.comments == rhs.comments &&
+		(lhs as CommonBusinessObjectLine) == (rhs as CommonBusinessObjectLine)
+	}
 
 }
