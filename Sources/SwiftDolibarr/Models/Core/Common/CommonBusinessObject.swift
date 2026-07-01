@@ -38,7 +38,7 @@ import OSLog
 /// - SeeAlso: ``DolibarrBusinessObject``
 /// - SeeAlso: ``CommonCommercialTransactionObject``
 public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
-    
+
 	// MARK: - Properties
 
 	/// Business object ID
@@ -108,15 +108,15 @@ public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 
 	public required init(from decoder: any Decoder) throws {
 		do {
-			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
+#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logWithoutSignal("\(Self.self).init.decode", category: .api)
-			#endif
+#endif
 			let container = try decoder.container(keyedBy: CodingKeys.self)
 			self.id = try container.decode(String.self, forKey: .id)
 			if let status = try? container.decode(MultiType.self, forKey: .statusCode), !status.stringValue.isEmpty {
 				self.statusCode = status.stringValue
 			} else if let status = try? container.decode(MultiType.self, forKey: .statusCodeLegacy),
-				!status.stringValue.isEmpty {
+					  !status.stringValue.isEmpty {
 				self.statusCode = status.stringValue
 			} else {
 				self.statusCode = ""
@@ -133,41 +133,41 @@ public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 			}
 			self.notePublic = try container.decodeIfPresent(String.self, forKey: .notePublic)
 			self.notePrivate = try container.decodeIfPresent(String.self, forKey: .notePrivate)
-			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
+#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
-			#endif
+#endif
 		} catch let error as DecodingError {
-			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
+#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logDecodingError(error, decodeContext: "\(Self.self).init")
-			#endif
+#endif
 			throw error
 		} catch {
-			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
+#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logErrorWithSignal(error, context: "\(Self.self).init", category: .api)
-			#endif
+#endif
 			throw error
 		}
 	}
-    
-    public init(copying source: CommonBusinessObject) {
-        self.id = source.id
-        self.statusCode = source.statusCode
-        self.entityId = source.entityId
-        self.arrayOptions = source.arrayOptions
-        self.notePublic = source.notePublic
-        self.notePrivate = source.notePrivate
-    }
-    
-    // MARK: - Methods
-    
-    public func copy(_ source: CommonBusinessObject) {
-        self.id = source.id
-        self.statusCode = source.statusCode
-        self.entityId = source.entityId
-        self.arrayOptions = source.arrayOptions
-        self.notePublic = source.notePublic
-        self.notePrivate = source.notePrivate
-    }
+
+	public init(copying source: CommonBusinessObject) {
+		self.id = source.id
+		self.statusCode = source.statusCode
+		self.entityId = source.entityId
+		self.arrayOptions = source.arrayOptions
+		self.notePublic = source.notePublic
+		self.notePrivate = source.notePrivate
+	}
+
+	// MARK: - Methods
+	
+	public func copy(_ source: CommonBusinessObject) {
+		self.id = source.id
+		self.statusCode = source.statusCode
+		self.entityId = source.entityId
+		self.arrayOptions = source.arrayOptions
+		self.notePublic = source.notePublic
+		self.notePrivate = source.notePrivate
+	}
 
 	// MARK: - Protocol methods
 
@@ -175,7 +175,7 @@ public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 		hasher.combine(id)
 		hasher.combine(statusCode)
 		hasher.combine(optional: entityId)
-        hasher.combine(optional: arrayOptions)
+		hasher.combine(optional: arrayOptions)
 		hasher.combine(optional: notePublic)
 		hasher.combine(optional: notePrivate)
 	}
@@ -185,13 +185,18 @@ public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 		try container.encodeIfNotEmpty(id, forKey: .id)
 		try container.encodeIfNotEmpty(statusCode, forKey: .statusCode)
 		try container.encodeIfPresentAndNotEmpty(entityId, forKey: .entityId)
-        try container.encodeIfPresent(arrayOptions, forKey: .arrayOptions)
+		try container.encodeIfPresent(arrayOptions, forKey: .arrayOptions)
 		try container.encodeIfPresent(notePublic, forKey: .notePublic)
 		try container.encodeIfPresent(notePrivate, forKey: .notePrivate)
 	}
 
 	public static func == (lhs: CommonBusinessObject, rhs: CommonBusinessObject) -> Bool {
 		lhs.id == rhs.id
+		&& lhs.statusCode == rhs.statusCode
+		&& lhs.entityId == rhs.entityId
+		&& lhs.arrayOptions == rhs.arrayOptions
+		&& lhs.notePublic == rhs.notePublic
+		&& lhs.notePrivate == rhs.notePrivate
 	}
 
 }

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.54.0] - 2026-07-01
+
+### Added
+- Copy method and copying init to Dolibarr stock movement and Dolibarr warehouse
+
+### Changed
+- Updated equality to compare all properties for Dolibarr stock movement, common business object and Dolibarr warehouse to align with hashing
+
 ## [0.53.0] - 2026-06-29
 
 ### Changed

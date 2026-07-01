@@ -119,12 +119,12 @@ public final class DolibarrStockMovement: Equatable, Hashable, Codable, Dolibarr
 		self.userAuthorId = userAuthorId
 		self.tms = tms
 	}
-
+	
 	public init(from decoder: any Decoder) throws {
 		do {
-			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
+#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logWithoutSignal("\(Self.self).init.decode", category: .api)
-			#endif
+#endif
 			let container = try decoder.container(keyedBy: CodingKeys.self)
 			self.id = try container.decode(String.self, forKey: .id)
 			if let dictArrayOptions = try? container.decode([String: MultiType].self, forKey: .arrayOptions) {
@@ -149,22 +149,58 @@ public final class DolibarrStockMovement: Equatable, Hashable, Codable, Dolibarr
 			self.dateModify = try container.decodeIfPresent(Int.self, forKey: .dateModify)
 			self.userAuthorId = try container.decodeIfPresent(String.self, forKey: .userAuthorId)
 			self.tms = try container.decodeIfPresent(Int.self, forKey: .tms)
-			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
+#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
-			#endif
+#endif
 		} catch let error as DecodingError {
-			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
+#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logDecodingError(error, decodeContext: "\(Self.self).init")
-			#endif
+#endif
 			throw error
 		} catch {
-			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
+#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logErrorWithSignal(error, context: "\(Self.self).init", category: .api)
-			#endif
+#endif
 			throw error
 		}
 	}
 
+	public init(copying source: DolibarrStockMovement) {
+		self.id = source.id
+		self.arrayOptions = source.arrayOptions
+		self.productId = source.productId
+		self.warehouseId = source.warehouseId
+		self.originId = source.originId
+		self.originType = source.originType
+		self.quantity = source.quantity
+		self.typeCode = source.typeCode
+		self.label = source.label
+		self.price = source.price
+		self.inventoryCode = source.inventoryCode
+		self.dateModify = source.dateModify
+		self.userAuthorId = source.userAuthorId
+		self.tms = source.tms
+	}
+	
+	// MARK: - Methods
+	
+	public func copy(_ source: DolibarrStockMovement) {
+		self.id = source.id
+		self.arrayOptions = source.arrayOptions
+		self.productId = source.productId
+		self.warehouseId = source.warehouseId
+		self.originId = source.originId
+		self.originType = source.originType
+		self.quantity = source.quantity
+		self.typeCode = source.typeCode
+		self.label = source.label
+		self.price = source.price
+		self.inventoryCode = source.inventoryCode
+		self.dateModify = source.dateModify
+		self.userAuthorId = source.userAuthorId
+		self.tms = source.tms
+	}
+	
 	// MARK: - Protocol methods
 
 	public func hash(into hasher: inout Hasher) {
@@ -201,6 +237,19 @@ public final class DolibarrStockMovement: Equatable, Hashable, Codable, Dolibarr
 
 	public static func == (lhs: DolibarrStockMovement, rhs: DolibarrStockMovement) -> Bool {
 		lhs.id == rhs.id
+		&& lhs.productId == rhs.productId
+		&& lhs.warehouseId == rhs.warehouseId
+		&& lhs.arrayOptions == rhs.arrayOptions
+		&& lhs.originId == rhs.originId
+		&& lhs.originType == rhs.originType
+		&& lhs.quantity == rhs.quantity
+		&& lhs.typeCode == rhs.typeCode
+		&& lhs.label == rhs.label
+		&& lhs.price == rhs.price
+		&& lhs.inventoryCode == rhs.inventoryCode
+		&& lhs.dateModify == rhs.dateModify
+		&& lhs.userAuthorId == rhs.userAuthorId
+		&& lhs.tms == rhs.tms
 	}
 
 }
