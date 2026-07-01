@@ -91,12 +91,20 @@ public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
 	/// Expense report line comments
 	public var comments: String?
 
+    // Computed
+
+	/// Expense report line date
+	public var dateIncurred: Date {
+		Date(timeIntervalSince1970: TimeInterval(date))
+	}
+
     // MARK: - Enums
 
     enum CodingKeys: String, CodingKey {
         case quantity = "qty"
         case unitPriceInclTax = "value_unit"
-        case date = "dates"
+        case dateDecode = "dates"
+        case dateEncode = "date"
         case feeTypeId = "fk_c_type_fees"
         case feeTypeCode = "type_fees_code"
         case feeTypeLabel = "type_fees_libelle"
@@ -146,7 +154,7 @@ public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             self.quantity = try container.decode(String.self, forKey: .quantity)
             self.unitPriceInclTax = try container.decode(String.self, forKey: .unitPriceInclTax)
-            self.date = try container.decode(Int.self, forKey: .date)
+            self.date = try container.decode(Int.self, forKey: .dateDecode)
             self.feeTypeId = try container.decode(String.self, forKey: .feeTypeId)
             self.feeTypeCode = try container.decode(String.self, forKey: .feeTypeCode)
             self.feeTypeLabel = try container.decode(String.self, forKey: .feeTypeLabel)
@@ -225,7 +233,7 @@ public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
         var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(quantity, forKey: .quantity)
 		try container.encode(unitPriceInclTax, forKey: .unitPriceInclTax)
-		try container.encode(date, forKey: .date)
+		try container.encode(date, forKey: .dateEncode)
 		try container.encode(feeTypeId, forKey: .feeTypeId)
 		try container.encode(feeTypeCode, forKey: .feeTypeCode)
 		try container.encode(feeTypeLabel, forKey: .feeTypeLabel)
