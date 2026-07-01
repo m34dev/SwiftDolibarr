@@ -148,6 +148,34 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
         }
     }
 
+    public init(copying source: DolibarrWarehouse) {
+		self.label = source.label
+		self.parentId = source.parentId
+		self.description = source.description
+		self.location = source.location
+		self.address = source.address
+		self.zipCode = source.zipCode
+		self.city = source.city
+		self.countryId = source.countryId
+		self.phone = source.phone
+		super.init(copying: source)
+    }
+
+    // MARK: - Methods
+
+    public func copy(_ source: DolibarrWarehouse) {
+		self.label = source.label
+		self.parentId = source.parentId
+		self.description = source.description
+		self.location = source.location
+		self.address = source.address
+		self.zipCode = source.zipCode
+		self.city = source.city
+		self.countryId = source.countryId
+		self.phone = source.phone
+		super.copy(source)
+    }
+
     // MARK: - Protocol methods
 
     override public func hash(into hasher: inout Hasher) {
@@ -176,5 +204,18 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
         try container.encodeIfPresent(countryId, forKey: .countryId)
 		try super.encode(to: encoder)
     }
+
+	public static func == (lhs: DolibarrWarehouse, rhs: DolibarrWarehouse) -> Bool {
+		lhs.label == rhs.label
+		&& lhs.parentId == rhs.parentId
+		&& lhs.description == rhs.description
+		&& lhs.location == rhs.location
+		&& lhs.address == rhs.address
+		&& lhs.zipCode == rhs.zipCode
+		&& lhs.city == rhs.city
+		&& lhs.countryId == rhs.countryId
+		&& lhs.phone == rhs.phone
+		&& (lhs as CommonBusinessObject) == (rhs as CommonBusinessObject)
+	}
 
 }
