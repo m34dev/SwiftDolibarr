@@ -74,7 +74,9 @@ public struct DolibarrProductStockWarehouse: Hashable, Equatable, Decodable {
                 self.stockWarehouses = productStock
             } else if let productStock = try? container.decode([String: DolibarrProductWarehouseStock].self, forKey: .stockWarehouses) {
                 self.stockWarehouses = productStock
-            }
+			} else {
+				self.stockWarehouses = [:]
+			}
             self.stockReal = try container.decodeIfPresent(Int.self, forKey: .stockReal)
             self.stockTheoretical = try container.decodeIfPresent(Int.self, forKey: .stockTheoretical)
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
