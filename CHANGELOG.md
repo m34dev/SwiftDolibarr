@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.57.0] - 2026-07-07
+
+### Added
+- Dolibarr external Multicompany module
+- Dolibarr product supplier price
+
+### Changed
+- Updated Dolibarr product stock warehouse decoding
+
 ## [0.56.0] - 2026-07-01
 
 ### Added
