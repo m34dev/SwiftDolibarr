@@ -167,6 +167,15 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
 
 	// Computed
 
+	/// Third party website URL, computed from ``url``
+	///
+	/// Prepends `https://` when the string has no scheme.
+	/// Returns `nil` when ``url`` is missing, empty, or not a valid URL.
+	public var websiteURL: URL? {
+		guard let url, !url.isEmpty else { return nil }
+		return URL(string: url.contains("://") ? url : "https://" + url)
+	}
+
 	/// Associated third party status type
 	override public var status: DolibarrObjectStatus {
 		guard let status = DolibarrObjectStatus.thirdPartiesContacts.first(where: { $0.code == statusCode }) else {

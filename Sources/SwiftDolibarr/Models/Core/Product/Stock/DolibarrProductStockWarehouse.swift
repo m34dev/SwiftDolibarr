@@ -68,12 +68,12 @@ public struct DolibarrProductStockWarehouse: Hashable, Equatable, Decodable {
             Logger.logWithoutSignal("\(Self.self).init.decode", category: .api)
             #endif
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            if let productStock = try? container.decode([String: DolibarrProductWarehouseStock].self, forKey: .stockWarehouse) {
+			if let empty = try? container.decode([String].self, forKey: .stockWarehouse), empty.isEmpty { // Workaround for Dolibarr returning empty array [] when no stock.
+				self.stockWarehouses = [:]
+			} else if let productStock = try? container.decode([String: DolibarrProductWarehouseStock].self, forKey: .stockWarehouse) {
                 self.stockWarehouses = productStock
             } else if let productStock = try? container.decode([String: DolibarrProductWarehouseStock].self, forKey: .stockWarehouses) {
                 self.stockWarehouses = productStock
-            } else {
-                self.stockWarehouses = [:]
             }
             self.stockReal = try container.decodeIfPresent(Int.self, forKey: .stockReal)
             self.stockTheoretical = try container.decodeIfPresent(Int.self, forKey: .stockTheoretical)
