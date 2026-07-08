@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //
-//  File.swift
+//  DolibarrUserPermissionsInvoice.swift
 //  SwiftDolibarr
 //
 //  Created by William Mead on 09/03/2026.
