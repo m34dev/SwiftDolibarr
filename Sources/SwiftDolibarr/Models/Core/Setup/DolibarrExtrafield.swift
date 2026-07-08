@@ -39,7 +39,7 @@ import OSLog
 /// - Note: The ``elementType`` value matches the Dolibarr element it extends
 ///   (e.g. `societe`, `facture`, `commande`, `propal`, `product`).
 /// - SeeAlso: ``DolibarrObject``
-public struct DolibarrExtrafield: Hashable, Decodable, Sendable, DolibarrObject {
+public struct DolibarrExtrafield: Hashable, Codable, Sendable, DolibarrObject {
 
     // MARK: - Properties
 
@@ -185,6 +185,59 @@ public struct DolibarrExtrafield: Hashable, Decodable, Sendable, DolibarrObject 
             Logger.logErrorWithSignal(error, context: "\(Self.self).init", category: .api)
             #endif
             throw error
+        }
+    }
+
+    // MARK: - Methods
+
+    public mutating func copy(_ source: DolibarrExtrafield) {
+        self.id = source.id
+        self.type = source.type
+        self.label = source.label
+        self.elementType = source.elementType
+        self.size = source.size
+        self.default = source.default
+        self.computed = source.computed
+        self.required = source.required
+        self.unique = source.unique
+        self.position = source.position
+        self.visibility = source.visibility
+        self.options = source.options
+    }
+
+    // MARK: - Protocol methods
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(type)
+        hasher.combine(label)
+        hasher.combine(elementType)
+        hasher.combine(optional: size)
+        hasher.combine(optional: `default`)
+        hasher.combine(optional: computed)
+        hasher.combine(optional: required)
+        hasher.combine(optional: unique)
+        hasher.combine(optional: position)
+        hasher.combine(optional: visibility)
+        hasher.combine(optional: options)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfNotEmpty(id, forKey: .id)
+        try container.encodeIfNotEmpty(type, forKey: .type)
+        try container.encodeIfNotEmpty(label, forKey: .label)
+        try container.encodeIfNotEmpty(elementType, forKey: .elementType)
+        try container.encodeIfPresent(size, forKey: .size)
+        try container.encodeIfPresent(`default`, forKey: .default)
+        try container.encodeIfPresent(computed, forKey: .computed)
+        try container.encodeIfPresent(required, forKey: .required)
+        try container.encodeIfPresent(unique, forKey: .unique)
+        try container.encodeIfPresent(position, forKey: .position)
+        try container.encodeIfPresent(visibility, forKey: .visibility)
+        if let options, !options.isEmpty {
+            var paramContainer = container.nestedContainer(keyedBy: ParamKeys.self, forKey: .param)
+            try paramContainer.encode(options, forKey: .options)
         }
     }
 
