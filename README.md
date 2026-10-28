@@ -56,6 +56,7 @@ Then add it to your target's dependencies:
 | **Quotes** | `DolibarrQuote`, `DolibarrQuoteLine` |
 | **Orders** | `DolibarrOrder`, `DolibarrOrderLine` |
 | **Invoices** | `DolibarrInvoice`, `DolibarrInvoiceLine` |
+| **Suppliers / Purchases** | `DolibarrSupplierOrder`, `DolibarrSupplierOrderLine`, `DolibarrSupplierInvoice`, `DolibarrSupplierInvoiceLine` |
 | **Interventions** | `DolibarrIntervention`, `DolibarrInterventionLine` |
 | **Expense Reports** | `DolibarrExpenseReport`, `DolibarrExpenseReportLine` |
 | **Projects & Tasks** | `DolibarrProject`, `DolibarrTask` |

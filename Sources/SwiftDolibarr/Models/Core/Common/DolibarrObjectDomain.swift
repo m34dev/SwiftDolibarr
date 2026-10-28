@@ -41,4 +41,6 @@ public enum DolibarrObjectDomain: String, Sendable, Codable, Equatable, Hashable
     case project
     case task
     case agendaEvent
+    case supplierOrder
+    case supplierInvoice
 }
