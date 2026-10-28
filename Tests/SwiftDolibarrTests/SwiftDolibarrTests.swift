@@ -442,3 +442,176 @@ private func makeContact() -> DolibarrContact {
     let redecoded = try decoder.decode(DolibarrUserPermissions.self, from: encoder.encode(permissions))
     #expect(redecoded == permissions)
 }
+
+/// Live `GET /supplierorders` response from Dolibarr v23 (draft order, and validated order with a line)
+@Test func decodeLiveSupplierOrdersV23() async throws {
+    let json = """
+    [
+      {
+        "id": "1",
+        "entity": "1",
+        "array_options": [],
+        "contacts_ids": null,
+        "contacts_ids_internal": null,
+        "linkedObjectsIds": null,
+        "fk_project": null,
+        "ref": "(PROV1)",
+        "statut": "0",
+        "status": "0",
+        "mode_reglement_id": null,
+        "cond_reglement_id": null,
+        "multicurrency_code": "EUR",
+        "model_pdf": "cornas",
+        "last_main_doc": null,
+        "note_public": "",
+        "note_private": "",
+        "total_ht": "0.00000000",
+        "total_tva": "0.00000000",
+        "total_ttc": "0.00000000",
+        "lines": [],
+        "civility_code": null,
+        "date_creation": 1770736891,
+        "date_validation": null,
+        "user_creation_id": null,
+        "user_validation_id": null,
+        "totalpaid_multicurrency": null,
+        "ref_supplier": "",
+        "ref_fourn": null,
+        "billed": "0",
+        "socid": "22",
+        "fourn_id": "22",
+        "date": 1770736891,
+        "date_valid": "",
+        "date_approve": "",
+        "date_approve2": "",
+        "date_commande": "",
+        "delivery_date": "",
+        "user_author_id": "1",
+        "user_approve_id": null,
+        "user_approve_id2": null
+      },
+      {
+        "id": "2",
+        "entity": "1",
+        "array_options": [],
+        "contacts_ids": null,
+        "contacts_ids_internal": null,
+        "linkedObjectsIds": null,
+        "fk_project": "1",
+        "ref": "PO2610-0001",
+        "statut": "1",
+        "status": "1",
+        "mode_reglement_id": "2",
+        "cond_reglement_id": "2",
+        "multicurrency_code": "EUR",
+        "model_pdf": "cornas",
+        "last_main_doc": "fournisseur/commande/PO2610-0001/PO2610-0001.pdf",
+        "note_public": "",
+        "note_private": "",
+        "total_ht": "100.00000000",
+        "total_tva": "10.00000000",
+        "total_ttc": "110.00000000",
+        "lines": [
+          {
+            "id": "1",
+            "array_options": {
+              "options_soustotal_level": null,
+              "options_soustotal_type": null,
+              "options_soustotal_hidden": null,
+              "options_soustotal_fk_free": null,
+              "options_soustotal_always_shown": null,
+              "options_soustotal_page_break": null
+            },
+            "contacts_ids_internal": null,
+            "ref": "produit_1",
+            "total_ht": "100.00000000",
+            "total_tva": "10.00000000",
+            "total_ttc": "110.00000000",
+            "product_type": "0",
+            "fk_product": "2",
+            "desc": "<br>",
+            "description": "<br>",
+            "product_ref": "produit_1",
+            "product_label": "produit 1",
+            "product_custom_code": null,
+            "qty": "10",
+            "remise_percent": "0",
+            "special_code": "0",
+            "subprice": "10.00000000",
+            "subprice_ttc": "11.00000000",
+            "tva_tx": "10.0000",
+            "fk_commande": "2",
+            "rang": "1",
+            "pu_ht": "10.00000000",
+            "date_start": "",
+            "date_end": "",
+            "ref_supplier": "Aze",
+            "ref_fourn": "Aze",
+            "pu_ttc": "11.00000000"
+          }
+        ],
+        "civility_code": null,
+        "date_creation": 1793203889,
+        "date_validation": null,
+        "user_creation_id": null,
+        "user_validation_id": "1",
+        "totalpaid_multicurrency": null,
+        "ref_supplier": "123456",
+        "ref_fourn": null,
+        "billed": "0",
+        "socid": "2",
+        "fourn_id": "2",
+        "date": 1793203889,
+        "date_valid": 1793203902,
+        "date_approve": "",
+        "date_approve2": "",
+        "date_commande": "",
+        "delivery_date": 1793142000,
+        "cond_reglement_code": "30D",
+        "mode_reglement_code": "VIR",
+        "user_author_id": "1",
+        "user_approve_id": null,
+        "user_approve_id2": null
+      }
+    ]
+    """
+    let decoder = JSONDecoder()
+    let orders = try decoder.decode([DolibarrSupplierOrder].self, from: Data(json.utf8))
+    #expect(orders.count == 2)
+
+    let draft = orders[0]
+    #expect(draft.ref == "(PROV1)")
+    #expect(draft.status == .draft)
+    #expect(draft.thirdPartyId == "22")
+    #expect(draft.pdfModel == "cornas")
+    #expect(draft.dateCreation == 1770736891)
+    #expect(draft.dateValidation == nil)
+    #expect(draft.dateApproval == nil)
+    #expect(draft.dateOrder == nil)
+    #expect(draft.deliveryDate == nil)
+    #expect(draft.userApproveId == nil)
+    #expect(draft.lines.isEmpty)
+
+    let validated = orders[1]
+    #expect(validated.ref == "PO2610-0001")
+    #expect(validated.status == .validated)
+    #expect(validated.supplierRef == "123456")
+    #expect(validated.dateValidation == 1793203902)
+    #expect(validated.deliveryDate == 1793142000)
+    #expect(validated.paymentMethodId == "2")
+    #expect(validated.paymentTermsId == "2")
+    #expect(validated.lastMainDoc == "fournisseur/commande/PO2610-0001/PO2610-0001.pdf")
+    #expect(validated.lines.count == 1)
+
+    let line = validated.lines[0]
+    #expect(line.supplierOrderId == "2")
+    #expect(line.supplierProductRef == "Aze")
+    #expect(line.productId == "2")
+    #expect(line.quantity == "10")
+    #expect(line.arrayOptions?.count == 6)
+    #expect(line.arrayOptions?["soustotal_level"] != nil)
+
+    let encoder = JSONEncoder()
+    let redecoded = try decoder.decode([DolibarrSupplierOrder].self, from: encoder.encode(orders))
+    #expect(redecoded == orders)
+}
