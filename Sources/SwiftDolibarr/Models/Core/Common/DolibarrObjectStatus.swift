@@ -258,6 +258,57 @@ public struct DolibarrObjectStatus: Identifiable, Equatable, Hashable, Sendable 
 		agendaEventNA, agendaEventToDo, agendaEventInProgress, agendaEventFinished
 	]
 
+	// Supplier order
+
+	public static let supplierOrderApproved: DolibarrObjectStatus = .init(
+		code: "2",
+		domain: .supplierOrder
+	)
+	public static let supplierOrderSent: DolibarrObjectStatus = .init(
+		code: "3",
+		domain: .supplierOrder
+	)
+	public static let supplierOrderReceivedPartially: DolibarrObjectStatus = .init(
+		code: "4",
+		domain: .supplierOrder
+	)
+	public static let supplierOrderReceivedCompletely: DolibarrObjectStatus = .init(
+		code: "5",
+		domain: .supplierOrder
+	)
+	public static let supplierOrderCanceled: DolibarrObjectStatus = .init(
+		code: "6",
+		domain: .supplierOrder
+	)
+	public static let supplierOrderCanceledAfterOrder: DolibarrObjectStatus = .init(
+		code: "7",
+		domain: .supplierOrder
+	)
+	public static let supplierOrderRefused: DolibarrObjectStatus = .init(
+		code: "9",
+		domain: .supplierOrder
+	)
+
+	public static let supplierOrders: [DolibarrObjectStatus] = [
+		draft, validated, supplierOrderApproved, supplierOrderSent, supplierOrderReceivedPartially,
+		supplierOrderReceivedCompletely, supplierOrderCanceled, supplierOrderCanceledAfterOrder, supplierOrderRefused
+	]
+
+	// Supplier invoice
+
+	public static let supplierInvoiceClosed: DolibarrObjectStatus = .init(
+		code: "2",
+		domain: .supplierInvoice
+	)
+	public static let supplierInvoiceAbandoned: DolibarrObjectStatus = .init(
+		code: "3",
+		domain: .supplierInvoice
+	)
+
+	public static let supplierInvoices: [DolibarrObjectStatus] = [
+		draft, validated, supplierInvoiceClosed, supplierInvoiceAbandoned
+	]
+
 	// MARK: - Protocol methods
 
 	public static func == (lhs: DolibarrObjectStatus, rhs: DolibarrObjectStatus) -> Bool {
