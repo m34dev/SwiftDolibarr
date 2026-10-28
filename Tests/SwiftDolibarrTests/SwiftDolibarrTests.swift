@@ -379,3 +379,66 @@ private func makeContact() -> DolibarrContact {
     #expect((contact as CommonBusinessObject) != base)
     #expect(base != (contact as CommonBusinessObject))
 }
+
+/// Live user permissions `fournisseur` node from Dolibarr v21
+@Test func decodeSupplierUserPermissions() async throws {
+    let json = """
+    {
+        "user": {
+            "user": {"lire": 1},
+            "self": {"creer": 1},
+            "user_advance": {"readperms": 1},
+            "self_advance": {"readperms": 1},
+            "group_advance": {"read": 1}
+        },
+        "fournisseur": {
+            "lire": 1,
+            "commande": {
+                "lire": 1,
+                "creer": 1,
+                "approuver": 1,
+                "commander": 1,
+                "receptionner": 1,
+                "supprimer": 1,
+                "export": 1
+            },
+            "supplier_order_advance": {
+                "validate": 1
+            },
+            "commande_advance": {
+                "check": 1
+            },
+            "facture": {
+                "lire": 1,
+                "creer": 1,
+                "supprimer": 1,
+                "export": 1
+            },
+            "supplier_invoice_advance": {
+                "validate": 1,
+                "send": 1
+            }
+        }
+    }
+    """
+    let decoder = JSONDecoder()
+    let permissions = try decoder.decode(DolibarrUserPermissions.self, from: Data(json.utf8))
+    let supplier = try #require(permissions.fournisseur)
+
+    #expect(supplier.lire == 1)
+    #expect(supplier.commande?.lire == 1)
+    #expect(supplier.commande?.approuver == 1)
+    #expect(supplier.commande?.commander == 1)
+    #expect(supplier.commande?.receptionner == 1)
+    #expect(supplier.commande?.export == 1)
+    #expect(supplier.supplierOrderAdvance?["validate"] == 1)
+    #expect(supplier.commandeAdvance?["check"] == 1)
+    #expect(supplier.facture?.lire == 1)
+    #expect(supplier.facture?.supprimer == 1)
+    #expect(supplier.supplierInvoiceAdvance?["validate"] == 1)
+    #expect(supplier.supplierInvoiceAdvance?["send"] == 1)
+
+    let encoder = JSONEncoder()
+    let redecoded = try decoder.decode(DolibarrUserPermissions.self, from: encoder.encode(permissions))
+    #expect(redecoded == permissions)
+}
