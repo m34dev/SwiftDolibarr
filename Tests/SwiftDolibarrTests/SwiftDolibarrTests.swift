@@ -323,3 +323,59 @@ import Testing
     let redecoded = try decoder.decode(DolibarrSupplierInvoice.self, from: encoder.encode(invoice))
     #expect(redecoded == invoice)
 }
+
+// MARK: - Equality and hashing
+
+private func makeContact() -> DolibarrContact {
+    DolibarrContact(
+        email: "jane@example.com",
+        lastname: "Doe",
+        firstname: "Jane",
+        address: "1 rue de la Paix",
+        zipCode: "75002",
+        city: "Paris",
+        socid: "7",
+        phoneMobile: "+33600000000",
+        id: "12",
+        statusCode: "1"
+    )
+}
+
+@Test func contactCopyIsEqualWithSameHash() async throws {
+    let contact = makeContact()
+    let copy = DolibarrContact(copying: contact)
+
+    #expect(copy == contact)
+    #expect(copy.hashValue == contact.hashValue)
+    #expect(AnyHashable(copy) == AnyHashable(contact))
+}
+
+@Test func contactsDifferingInAddressAreNotEqual() async throws {
+    let contact = makeContact()
+    let edited = DolibarrContact(copying: contact)
+    edited.address = "2 avenue Foch"
+
+    #expect(edited != contact)
+    #expect(edited.hashValue != contact.hashValue)
+    // Generic Equatable path, as used by SwiftUI diffing
+    #expect(AnyHashable(edited) != AnyHashable(contact))
+    #expect((edited as CommonBusinessObject) != (contact as CommonBusinessObject))
+}
+
+@Test func contactsDifferingInPhoneAreNotEqual() async throws {
+    let contact = makeContact()
+    let edited = DolibarrContact(copying: contact)
+    edited.phoneMobile = "+33611111111"
+
+    #expect(edited != contact)
+    #expect(edited.hashValue != contact.hashValue)
+    #expect(AnyHashable(edited) != AnyHashable(contact))
+}
+
+@Test func contactIsNotEqualToBaseObjectWithSameFields() async throws {
+    let contact = makeContact()
+    let base = CommonBusinessObject(id: contact.id, statusCode: contact.statusCode)
+
+    #expect((contact as CommonBusinessObject) != base)
+    #expect(base != (contact as CommonBusinessObject))
+}
