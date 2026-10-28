@@ -190,13 +190,23 @@ public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 		try container.encodeIfPresent(notePrivate, forKey: .notePrivate)
 	}
 
+	/// Value equality used by ``==``.
+	///
+	/// `==` is static and cannot be overridden, so subclasses that override
+	/// `hash(into:)` must also override this method to compare the same fields
+	/// and call `super`, keeping equal objects' hashes equal.
+	public func isEqual(to other: CommonBusinessObject) -> Bool {
+		type(of: self) == type(of: other)
+		&& id == other.id
+		&& statusCode == other.statusCode
+		&& entityId == other.entityId
+		&& arrayOptions == other.arrayOptions
+		&& notePublic == other.notePublic
+		&& notePrivate == other.notePrivate
+	}
+
 	public static func == (lhs: CommonBusinessObject, rhs: CommonBusinessObject) -> Bool {
-		lhs.id == rhs.id
-		&& lhs.statusCode == rhs.statusCode
-		&& lhs.entityId == rhs.entityId
-		&& lhs.arrayOptions == rhs.arrayOptions
-		&& lhs.notePublic == rhs.notePublic
-		&& lhs.notePrivate == rhs.notePrivate
+		lhs.isEqual(to: rhs)
 	}
 
 }
