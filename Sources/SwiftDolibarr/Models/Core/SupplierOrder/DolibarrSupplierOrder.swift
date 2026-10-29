@@ -122,6 +122,16 @@ public final class DolibarrSupplierOrder: CommonCommercialTransactionObject {
 	/// - Mapped Dolibarr property: **cond_reglement_id**
 	public var paymentTermsId: String?
 
+	/// Supplier order ordering method ID
+	///
+	/// - Mapped Dolibarr property: **methode_commande_id**
+	public var orderMethodId: String?
+
+	/// Supplier order ordering method label
+	///
+	/// - Mapped Dolibarr property: **methode_commande**
+	public var orderMethod: String?
+
 	/// Whether the supplier order has been billed
 	///
 	/// - Mapped Dolibarr property: **billed**
@@ -153,6 +163,8 @@ public final class DolibarrSupplierOrder: CommonCommercialTransactionObject {
 		case userApproveId2 = "user_approve_id2"
 		case paymentMethodId = "mode_reglement_id"
 		case paymentTermsId = "cond_reglement_id"
+		case orderMethodId = "methode_commande_id"
+		case orderMethod = "methode_commande"
 		case billed
 	}
 
@@ -174,6 +186,8 @@ public final class DolibarrSupplierOrder: CommonCommercialTransactionObject {
 		userApproveId2: String? = nil,
 		paymentMethodId: String? = nil,
 		paymentTermsId: String? = nil,
+		orderMethodId: String? = nil,
+		orderMethod: String? = nil,
 		billed: String? = nil,
 		thirdPartyId: String = "",
 		statusCode: String = "0",
@@ -203,6 +217,8 @@ public final class DolibarrSupplierOrder: CommonCommercialTransactionObject {
 		self.userApproveId2 = userApproveId2
 		self.paymentMethodId = paymentMethodId
 		self.paymentTermsId = paymentTermsId
+		self.orderMethodId = orderMethodId
+		self.orderMethod = orderMethod
 		self.billed = billed
 		super.init(
 			thirdPartyId: thirdPartyId,
@@ -240,6 +256,8 @@ public final class DolibarrSupplierOrder: CommonCommercialTransactionObject {
 			self.userApproveId2 = try container.decodeIfPresent(String.self, forKey: .userApproveId2)
 			self.paymentMethodId = try container.decodeIfPresent(String.self, forKey: .paymentMethodId)
 			self.paymentTermsId = try container.decodeIfPresent(String.self, forKey: .paymentTermsId)
+			self.orderMethodId = try container.decodeIfPresent(MultiType.self, forKey: .orderMethodId)?.stringValue
+			self.orderMethod = try container.decodeIfPresent(String.self, forKey: .orderMethod)
 			self.billed = try container.decodeIfPresent(MultiType.self, forKey: .billed)?.stringValue
 			self.lines = try container.decode([DolibarrSupplierOrderLine].self, forKey: .lines)
 			try super.init(from: decoder)
@@ -275,6 +293,8 @@ public final class DolibarrSupplierOrder: CommonCommercialTransactionObject {
         self.userApproveId2 = source.userApproveId2
         self.paymentMethodId = source.paymentMethodId
         self.paymentTermsId = source.paymentTermsId
+        self.orderMethodId = source.orderMethodId
+        self.orderMethod = source.orderMethod
         self.billed = source.billed
         super.init(copying: source)
     }
@@ -297,6 +317,8 @@ public final class DolibarrSupplierOrder: CommonCommercialTransactionObject {
         self.userApproveId2 = source.userApproveId2
         self.paymentMethodId = source.paymentMethodId
         self.paymentTermsId = source.paymentTermsId
+        self.orderMethodId = source.orderMethodId
+        self.orderMethod = source.orderMethod
         self.billed = source.billed
         super.copy(source)
     }
@@ -319,6 +341,8 @@ public final class DolibarrSupplierOrder: CommonCommercialTransactionObject {
 		hasher.combine(optional: userApproveId2)
 		hasher.combine(optional: paymentMethodId)
 		hasher.combine(optional: paymentTermsId)
+		hasher.combine(optional: orderMethodId)
+		hasher.combine(optional: orderMethod)
 		hasher.combine(optional: billed)
 		super.hash(into: &hasher)
 	}
@@ -340,6 +364,8 @@ public final class DolibarrSupplierOrder: CommonCommercialTransactionObject {
 		try container.encodeIfPresentAndNotEmpty(userApproveId2, forKey: .userApproveId2)
 		try container.encodeIfPresentAndNotEmpty(paymentMethodId, forKey: .paymentMethodId)
 		try container.encodeIfPresentAndNotEmpty(paymentTermsId, forKey: .paymentTermsId)
+		try container.encodeIfPresentAndNotEmpty(orderMethodId, forKey: .orderMethodId)
+		try container.encodeIfPresent(orderMethod, forKey: .orderMethod)
 		try container.encodeIfPresent(billed, forKey: .billed)
 		try super.encode(to: encoder)
 	}
