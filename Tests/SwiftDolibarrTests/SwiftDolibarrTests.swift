@@ -35,6 +35,8 @@ import Testing
         "date_commande": 1700000100,
         "delivery_date": 1700100000,
         "billed": "0",
+        "methode_commande_id": "2",
+        "methode_commande": "Phone",
         "lines": [
             {
                 "id": "1",
@@ -67,10 +69,14 @@ import Testing
     #expect(order.lines.count == 1)
     #expect(order.lines[0].supplierOrderId == "42")
     #expect(order.lines[0].supplierProductRef == "SUP-REF-1")
+    #expect(order.orderMethodId == "2")
+    #expect(order.orderMethod == "Phone")
 
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode(DolibarrSupplierOrder.self, from: encoder.encode(order))
     #expect(redecoded == order)
+    #expect(redecoded.orderMethodId == "2")
+    #expect(redecoded.orderMethod == "Phone")
 }
 
 @Test func decodeSupplierInvoice() async throws {
@@ -485,6 +491,8 @@ private func makeContact() -> DolibarrContact {
         "date_approve": "",
         "date_approve2": "",
         "date_commande": "",
+        "methode_commande_id": "0",
+        "methode_commande": null,
         "delivery_date": "",
         "user_author_id": "1",
         "user_approve_id": null,
@@ -591,6 +599,8 @@ private func makeContact() -> DolibarrContact {
     #expect(draft.deliveryDate == nil)
     #expect(draft.userApproveId == nil)
     #expect(draft.lines.isEmpty)
+    #expect(draft.orderMethodId == "0")
+    #expect(draft.orderMethod == nil)
 
     let validated = orders[1]
     #expect(validated.ref == "PO2610-0001")
@@ -614,4 +624,86 @@ private func makeContact() -> DolibarrContact {
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode([DolibarrSupplierOrder].self, from: encoder.encode(orders))
     #expect(redecoded == orders)
+}
+
+/// Live `GET /supplierorders/{id}` response from Dolibarr v23 (ordered order, with ordering method)
+@Test func decodeLiveSupplierOrderV23Ordered() async throws {
+    let json = """
+    {
+      "id": "2",
+      "entity": "1",
+      "array_options": [],
+      "linkedObjectsIds": null,
+      "fk_project": "1",
+      "ref": "PO2610-0001",
+      "statut": "3",
+      "status": "3",
+      "mode_reglement_id": "2",
+      "cond_reglement_id": "2",
+      "multicurrency_code": "EUR",
+      "model_pdf": "cornas",
+      "last_main_doc": "fournisseur/commande/PO2610-0001/PO2610-0001.pdf",
+      "note_public": "",
+      "note_private": "Commentaire: test",
+      "total_ht": "100.00000000",
+      "total_tva": "10.00000000",
+      "total_ttc": "110.00000000",
+      "lines": [],
+      "date_creation": 1793203889,
+      "user_validation_id": "1",
+      "ref_supplier": "123456",
+      "billed": "1",
+      "socid": "2",
+      "fourn_id": "2",
+      "date": 1793228400,
+      "date_valid": 1793266243,
+      "date_approve": 1793267823,
+      "date_approve2": "",
+      "date_commande": 1793228400,
+      "methode_commande_id": "5",
+      "methode_commande": "En ligne",
+      "delivery_date": 1793142000,
+      "user_author_id": "1",
+      "user_approve_id": "1",
+      "user_approve_id2": null
+    }
+    """
+    let decoder = JSONDecoder()
+    let order = try decoder.decode(DolibarrSupplierOrder.self, from: Data(json.utf8))
+
+    #expect(order.status == .supplierOrderSent)
+    #expect(order.dateOrder == 1793228400)
+    #expect(order.dateApproval == 1793267823)
+    #expect(order.userApproveId == "1")
+    #expect(order.billed == "1")
+    #expect(order.orderMethodId == "5")
+    #expect(order.orderMethod == "En ligne")
+
+    let copy = DolibarrSupplierOrder(copying: order)
+    #expect(copy.orderMethodId == "5")
+    #expect(copy.orderMethod == "En ligne")
+
+    let encoder = JSONEncoder()
+    let redecoded = try decoder.decode(DolibarrSupplierOrder.self, from: encoder.encode(order))
+    #expect(redecoded == order)
+    #expect(redecoded.orderMethodId == "5")
+    #expect(redecoded.orderMethod == "En ligne")
+}
+
+/// `GET /setup/dictionary/ordering_methods` response (`rowid` as string or integer)
+@Test func decodeOrderingMethods() async throws {
+    let json = """
+    [
+        { "rowid": "1", "code": "OrderByMail", "label": "Courrier", "module": null },
+        { "rowid": 5, "code": "OrderByWWW", "label": "En ligne", "module": null }
+    ]
+    """
+    let decoder = JSONDecoder()
+    let methods = try decoder.decode([DolibarrOrderingMethod].self, from: Data(json.utf8))
+
+    #expect(methods.count == 2)
+    #expect(methods[0] == DolibarrOrderingMethod(id: "1", code: "OrderByMail", label: "Courrier"))
+    #expect(methods[1].id == "5")
+    #expect(methods[1].code == "OrderByWWW")
+    #expect(methods[1].label == "En ligne")
 }
