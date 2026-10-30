@@ -125,6 +125,9 @@ public final class DolibarrCategory: Equatable, Hashable, Codable, DolibarrObjec
 
     public static func == (lhs: DolibarrCategory, rhs: DolibarrCategory) -> Bool {
         lhs.id == rhs.id
+        && lhs.parentId == rhs.parentId
+        && lhs.label == rhs.label
+        && lhs.description == rhs.description
     }
 
 }

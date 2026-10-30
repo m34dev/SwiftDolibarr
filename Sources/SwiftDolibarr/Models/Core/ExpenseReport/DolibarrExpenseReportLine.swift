@@ -230,6 +230,22 @@ public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
         super.hash(into: &hasher)
     }
 
+	override public func isEqual(to other: CommonBusinessObjectLine) -> Bool {
+		guard let other = other as? DolibarrExpenseReportLine else { return false }
+		return quantity == other.quantity
+		&& unitPriceInclTax == other.unitPriceInclTax
+		&& date == other.date
+		&& feeTypeId == other.feeTypeId
+		&& feeTypeCode == other.feeTypeCode
+		&& feeTypeLabel == other.feeTypeLabel
+		&& totalExclTax == other.totalExclTax
+		&& totalTax == other.totalTax
+		&& totalInclTax == other.totalInclTax
+		&& taxRate == other.taxRate
+		&& comments == other.comments
+		&& super.isEqual(to: other)
+	}
+
 	override public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(quantity, forKey: .quantity)

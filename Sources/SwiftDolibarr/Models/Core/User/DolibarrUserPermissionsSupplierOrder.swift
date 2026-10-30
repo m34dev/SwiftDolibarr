@@ -33,6 +33,8 @@ public struct DolibarrUserPermissionsSupplierOrder: Codable, Hashable {
 	public var lire: Int?
 	public var creer: Int?
 	public var approuver: Int?
+	/// Second-level approval, only defined when `SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED` is enabled
+	public var approve2: Int?
 	public var commander: Int?
 	public var receptionner: Int?
 	public var supprimer: Int?
@@ -44,6 +46,7 @@ public struct DolibarrUserPermissionsSupplierOrder: Codable, Hashable {
 		case lire
 		case creer
 		case approuver
+		case approve2
 		case commander
 		case receptionner
 		case supprimer
@@ -56,6 +59,7 @@ public struct DolibarrUserPermissionsSupplierOrder: Codable, Hashable {
 		lire: Int? = nil,
 		creer: Int? = nil,
 		approuver: Int? = nil,
+		approve2: Int? = nil,
 		commander: Int? = nil,
 		receptionner: Int? = nil,
 		supprimer: Int? = nil,
@@ -64,6 +68,7 @@ public struct DolibarrUserPermissionsSupplierOrder: Codable, Hashable {
 		self.lire = lire
 		self.creer = creer
 		self.approuver = approuver
+		self.approve2 = approve2
 		self.commander = commander
 		self.receptionner = receptionner
 		self.supprimer = supprimer
@@ -75,6 +80,7 @@ public struct DolibarrUserPermissionsSupplierOrder: Codable, Hashable {
 		self.lire = try container.decodeIfPresent(Int.self, forKey: .lire)
 		self.creer = try container.decodeIfPresent(Int.self, forKey: .creer)
 		self.approuver = try container.decodeIfPresent(Int.self, forKey: .approuver)
+		self.approve2 = try container.decodeIfPresent(Int.self, forKey: .approve2)
 		self.commander = try container.decodeIfPresent(Int.self, forKey: .commander)
 		self.receptionner = try container.decodeIfPresent(Int.self, forKey: .receptionner)
 		self.supprimer = try container.decodeIfPresent(Int.self, forKey: .supprimer)

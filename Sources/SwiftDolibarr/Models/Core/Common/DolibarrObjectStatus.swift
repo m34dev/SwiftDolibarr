@@ -313,7 +313,8 @@ public struct DolibarrObjectStatus: Identifiable, Equatable, Hashable, Sendable 
 
 	public static func == (lhs: DolibarrObjectStatus, rhs: DolibarrObjectStatus) -> Bool {
 		lhs.id == rhs.id &&
-		lhs.code == rhs.code
+		lhs.code == rhs.code &&
+		lhs.domain == rhs.domain
 	}
 
 	public func hash(into hasher: inout Hasher) {

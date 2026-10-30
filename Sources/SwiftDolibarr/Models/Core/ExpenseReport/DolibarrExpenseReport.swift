@@ -431,6 +431,34 @@ public final class DolibarrExpenseReport: CommonBusinessObject {
 		super.hash(into: &hasher)
     }
 
+    override public func isEqual(to other: CommonBusinessObject) -> Bool {
+		guard let other = other as? DolibarrExpenseReport else { return false }
+		return ref == other.ref
+		&& dateStart == other.dateStart
+		&& dateEnd == other.dateEnd
+		&& dateCreate == other.dateCreate
+		&& dateModify == other.dateModify
+		&& dateValidate == other.dateValidate
+		&& dateApprove == other.dateApprove
+		&& dateRefuse == other.dateRefuse
+		&& dateCancel == other.dateCancel
+		&& userCreateId == other.userCreateId
+		&& userModifyId == other.userModifyId
+		&& userBeneficiaryId == other.userBeneficiaryId
+		&& userValidatorId == other.userValidatorId
+		&& userApprovedById == other.userApprovedById
+		&& userCanceledById == other.userCanceledById
+		&& userRefusedById == other.userRefusedById
+		&& detailRefused == other.detailRefused
+		&& detailCanceled == other.detailCanceled
+		&& paid == other.paid
+		&& totalExclTax == other.totalExclTax
+		&& totalTax == other.totalTax
+		&& totalInclTax == other.totalInclTax
+		&& lines == other.lines
+		&& super.isEqual(to: other)
+    }
+
     override public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfNotEmpty(ref, forKey: .ref)

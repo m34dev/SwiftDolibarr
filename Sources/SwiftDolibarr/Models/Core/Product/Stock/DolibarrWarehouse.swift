@@ -191,6 +191,20 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
 		super.hash(into: &hasher)
     }
 
+    override public func isEqual(to other: CommonBusinessObject) -> Bool {
+		guard let other = other as? DolibarrWarehouse else { return false }
+		return label == other.label
+		&& parentId == other.parentId
+		&& description == other.description
+		&& location == other.location
+		&& address == other.address
+		&& zipCode == other.zipCode
+		&& city == other.city
+		&& countryId == other.countryId
+		&& phone == other.phone
+		&& super.isEqual(to: other)
+    }
+
     override public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encodeIfNotEmpty(label, forKey: .label)
@@ -204,18 +218,5 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
         try container.encodeIfPresent(countryId, forKey: .countryId)
 		try super.encode(to: encoder)
     }
-
-	public static func == (lhs: DolibarrWarehouse, rhs: DolibarrWarehouse) -> Bool {
-		lhs.label == rhs.label
-		&& lhs.parentId == rhs.parentId
-		&& lhs.description == rhs.description
-		&& lhs.location == rhs.location
-		&& lhs.address == rhs.address
-		&& lhs.zipCode == rhs.zipCode
-		&& lhs.city == rhs.city
-		&& lhs.countryId == rhs.countryId
-		&& lhs.phone == rhs.phone
-		&& (lhs as CommonBusinessObject) == (rhs as CommonBusinessObject)
-	}
 
 }

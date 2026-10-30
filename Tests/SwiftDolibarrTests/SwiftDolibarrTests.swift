@@ -434,6 +434,7 @@ private func makeContact() -> DolibarrContact {
     #expect(supplier.lire == 1)
     #expect(supplier.commande?.lire == 1)
     #expect(supplier.commande?.approuver == 1)
+    #expect(supplier.commande?.approve2 == nil)
     #expect(supplier.commande?.commander == 1)
     #expect(supplier.commande?.receptionner == 1)
     #expect(supplier.commande?.export == 1)
@@ -447,6 +448,31 @@ private func makeContact() -> DolibarrContact {
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode(DolibarrUserPermissions.self, from: encoder.encode(permissions))
     #expect(redecoded == permissions)
+}
+
+/// `fournisseur.commande` node with `SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED` enabled
+@Test func decodeSupplierOrderSecondLevelApprovalPermission() async throws {
+    let json = """
+    {
+        "lire": 1,
+        "creer": 1,
+        "approuver": 1,
+        "approve2": 1,
+        "commander": 1,
+        "receptionner": 1,
+        "supprimer": 1,
+        "export": 1
+    }
+    """
+    let decoder = JSONDecoder()
+    let permissions = try decoder.decode(DolibarrUserPermissionsSupplierOrder.self, from: Data(json.utf8))
+
+    #expect(permissions.approuver == 1)
+    #expect(permissions.approve2 == 1)
+
+    let redecoded = try decoder.decode(DolibarrUserPermissionsSupplierOrder.self, from: JSONEncoder().encode(permissions))
+    #expect(redecoded == permissions)
+    #expect(redecoded.approve2 == 1)
 }
 
 /// Live `GET /supplierorders` response from Dolibarr v23 (draft order, and validated order with a line)
@@ -706,4 +732,100 @@ private func makeContact() -> DolibarrContact {
     #expect(methods[1].id == "5")
     #expect(methods[1].code == "OrderByWWW")
     #expect(methods[1].label == "En ligne")
+}
+
+@Test func warehousesDifferingInLabelAreNotEqual() async throws {
+    let warehouse = DolibarrWarehouse(label: "Main", city: "Lyon", id: "3", statusCode: "1")
+    let copy = DolibarrWarehouse(copying: warehouse)
+
+    #expect(copy == warehouse)
+    #expect(copy.hashValue == warehouse.hashValue)
+
+    copy.label = "Annex"
+
+    #expect(copy != warehouse)
+    #expect(AnyHashable(copy) != AnyHashable(warehouse))
+    #expect((copy as CommonBusinessObject) != (warehouse as CommonBusinessObject))
+}
+
+private func makeInvoice() -> DolibarrInvoice {
+    DolibarrInvoice(
+        date: 1700000000,
+        lines: [DolibarrInvoiceLine(invoiceId: "5", quantity: "2", id: "51", rang: "1")],
+        thirdPartyId: "7",
+        statusCode: "1",
+        ref: "FA2026-0001",
+        totalExclTax: "100.00",
+        id: "5"
+    )
+}
+
+@Test func invoiceCopyIsEqualWithSameHash() async throws {
+    let invoice = makeInvoice()
+    let copy = DolibarrInvoice(copying: invoice)
+
+    #expect(copy == invoice)
+    #expect(copy.hashValue == invoice.hashValue)
+    #expect(AnyHashable(copy) == AnyHashable(invoice))
+}
+
+@Test func invoicesDifferingInSubclassOrCommercialFieldsAreNotEqual() async throws {
+    let invoice = makeInvoice()
+
+    let paid = DolibarrInvoice(copying: invoice)
+    paid.paidCode = "1"
+    #expect(paid != invoice)
+    #expect(AnyHashable(paid) != AnyHashable(invoice))
+    #expect((paid as CommonBusinessObject) != (invoice as CommonBusinessObject))
+
+    let renamed = DolibarrInvoice(copying: invoice)
+    renamed.ref = "FA2026-0002"
+    #expect(renamed != invoice)
+    #expect((renamed as CommonBusinessObject) != (invoice as CommonBusinessObject))
+}
+
+@Test func linesDifferingInSubclassOrCommercialFieldsAreNotEqual() async throws {
+    let line = DolibarrInvoiceLine(invoiceId: "5", quantity: "2", id: "51", rang: "1")
+    let copy = DolibarrInvoiceLine(copying: line)
+
+    #expect(copy == line)
+    #expect(copy.hashValue == line.hashValue)
+
+    let moved = DolibarrInvoiceLine(copying: line)
+    moved.invoiceId = "6"
+    #expect(moved != line)
+    #expect(AnyHashable(moved) != AnyHashable(line))
+    #expect((moved as CommonBusinessObjectLine) != (line as CommonBusinessObjectLine))
+
+    let requantified = DolibarrInvoiceLine(copying: line)
+    requantified.quantity = "3"
+    #expect(requantified != line)
+
+    let orderLine = DolibarrOrderLine(orderId: "8", quantity: "2", id: "81", rang: "1")
+    let editedOrderLine = DolibarrOrderLine(copying: orderLine)
+    editedOrderLine.orderId = "9"
+    #expect(editedOrderLine != orderLine)
+}
+
+@Test func lineIsNotEqualToLineOfAnotherTypeWithSameFields() async throws {
+    let invoiceLine = DolibarrInvoiceLine(id: "1", rang: "1")
+    let orderLine = DolibarrOrderLine(id: "1", rang: "1")
+
+    #expect((invoiceLine as CommonBusinessObjectLine) != (orderLine as CommonBusinessObjectLine))
+}
+
+@Test func categoriesWithSameIdButDifferentLabelAreNotEqual() async throws {
+    let category = DolibarrCategory(id: "4", label: "Clients")
+    let renamed = DolibarrCategory(id: "4", label: "Prospects")
+
+    #expect(renamed != category)
+    #expect(DolibarrCategory(id: "4", label: "Clients") == category)
+}
+
+@Test func objectStatusesDifferingInDomainAreNotEqual() async throws {
+    var status = DolibarrObjectStatus.draft
+    status.domain = .warehouse
+
+    #expect(status != .draft)
+    #expect(Set([status, .draft]).count == 2)
 }

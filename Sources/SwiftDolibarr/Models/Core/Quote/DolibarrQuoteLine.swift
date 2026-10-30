@@ -132,6 +132,12 @@ public final class DolibarrQuoteLine: CommonCommercialTransactionObjectLine {
 		super.hash(into: &hasher)
 	}
 
+	override public func isEqual(to other: CommonBusinessObjectLine) -> Bool {
+		guard let other = other as? DolibarrQuoteLine else { return false }
+		return quoteId == other.quoteId
+		&& super.isEqual(to: other)
+	}
+
 	override public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(quoteId, forKey: .quoteId)
