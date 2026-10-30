@@ -829,3 +829,34 @@ private func makeInvoice() -> DolibarrInvoice {
     #expect(status != .draft)
     #expect(Set([status, .draft]).count == 2)
 }
+
+/// Live user permissions `categorie` node from Dolibarr v21
+@Test func decodeCategoryUserPermissions() async throws {
+    let json = """
+    {
+        "user": {
+            "user": {"lire": 1},
+            "self": {"creer": 1},
+            "user_advance": {"readperms": 1},
+            "self_advance": {"readperms": 1},
+            "group_advance": {"read": 1}
+        },
+        "categorie": {
+            "lire": 1,
+            "creer": 1,
+            "supprimer": 1
+        }
+    }
+    """
+    let decoder = JSONDecoder()
+    let permissions = try decoder.decode(DolibarrUserPermissions.self, from: Data(json.utf8))
+    let category = try #require(permissions.categorie)
+
+    #expect(category.lire == 1)
+    #expect(category.creer == 1)
+    #expect(category.supprimer == 1)
+
+    let encoder = JSONEncoder()
+    let redecoded = try decoder.decode(DolibarrUserPermissions.self, from: encoder.encode(permissions))
+    #expect(redecoded == permissions)
+}
