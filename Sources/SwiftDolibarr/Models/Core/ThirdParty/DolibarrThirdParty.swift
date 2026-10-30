@@ -438,6 +438,38 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
 		super.hash(into: &hasher)
     }
 
+    override public func isEqual(to other: CommonBusinessObject) -> Bool {
+		guard let other = other as? DolibarrThirdParty else { return false }
+		return name == other.name
+		&& countryId == other.countryId
+		&& countryCode == other.countryCode
+		&& multicurrencyCode == other.multicurrencyCode
+		&& nameAlias == other.nameAlias
+		&& phone == other.phone
+		&& fax == other.fax
+		&& email == other.email
+		&& url == other.url
+		&& idprof1 == other.idprof1
+		&& idprof2 == other.idprof2
+		&& idprof3 == other.idprof3
+		&& idprof4 == other.idprof4
+		&& idprof5 == other.idprof5
+		&& tvaIntra == other.tvaIntra
+		&& capital == other.capital
+		&& workforce == other.workforce
+		&& legalEntityType == other.legalEntityType
+		&& client == other.client
+		&& supplier == other.supplier
+		&& clientCode == other.clientCode
+		&& supplierCode == other.supplierCode
+		&& parentId == other.parentId
+		&& socialnetworks == other.socialnetworks
+		&& address == other.address
+		&& zipCode == other.zipCode
+		&& city == other.city
+		&& super.isEqual(to: other)
+    }
+
     override public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encodeIfNotEmpty(name, forKey: .name)

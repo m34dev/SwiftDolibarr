@@ -144,6 +144,13 @@ public final class DolibarrSupplierOrderLine: CommonCommercialTransactionObjectL
 		super.hash(into: &hasher)
 	}
 
+	override public func isEqual(to other: CommonBusinessObjectLine) -> Bool {
+		guard let other = other as? DolibarrSupplierOrderLine else { return false }
+		return supplierOrderId == other.supplierOrderId
+		&& supplierProductRef == other.supplierProductRef
+		&& super.isEqual(to: other)
+	}
+
 	override public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(supplierOrderId, forKey: .supplierOrderId)

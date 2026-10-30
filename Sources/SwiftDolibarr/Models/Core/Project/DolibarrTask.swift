@@ -273,6 +273,23 @@ public final class DolibarrTask: CommonBusinessObject {
         super.hash(into: &hasher)
 	}
 
+	override public func isEqual(to other: CommonBusinessObject) -> Bool {
+		guard let other = other as? DolibarrTask else { return false }
+		return ref == other.ref
+		&& label == other.label
+		&& projectId == other.projectId
+		&& parentId == other.parentId
+		&& billable == other.billable
+		&& dateStart == other.dateStart
+		&& dateEnd == other.dateEnd
+		&& plannedWorkload == other.plannedWorkload
+		&& progress == other.progress
+		&& description == other.description
+		&& budgetAmount == other.budgetAmount
+		&& totalTimeSpentSeconds == other.totalTimeSpentSeconds
+		&& super.isEqual(to: other)
+	}
+
 	override public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encodeIfNotEmpty(ref, forKey: .ref)

@@ -164,6 +164,15 @@ public final class DolibarrInterventionLine: CommonBusinessObjectLine {
 		super.hash(into: &hasher)
     }
 
+    override public func isEqual(to other: CommonBusinessObjectLine) -> Bool {
+		guard let other = other as? DolibarrInterventionLine else { return false }
+		return dateIntervene == other.dateIntervene
+		&& durationSeconds == other.durationSeconds
+		&& interventionId == other.interventionId
+		&& description == other.description
+		&& super.isEqual(to: other)
+    }
+
     override public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(dateIntervene, forKey: .date)

@@ -133,10 +133,20 @@ public class CommonBusinessObjectLine: Equatable, Hashable, Codable, DolibarrObj
 		try container.encodeIfPresent(arrayOptions, forKey: .arrayOptions)
 	}
 
+	/// Value equality used by ``==``.
+	///
+	/// `==` is static and cannot be overridden, so subclasses that override
+	/// `hash(into:)` must also override this method to compare the same fields
+	/// and call `super`, keeping equal objects' hashes equal.
+	public func isEqual(to other: CommonBusinessObjectLine) -> Bool {
+		type(of: self) == type(of: other)
+		&& id == other.id
+		&& rang == other.rang
+		&& arrayOptions == other.arrayOptions
+	}
+
 	static public func == (lhs: CommonBusinessObjectLine, rhs: CommonBusinessObjectLine) -> Bool {
-		lhs.id == rhs.id &&
-		lhs.rang == rhs.rang &&
-		lhs.arrayOptions == rhs.arrayOptions
+		lhs.isEqual(to: rhs)
 	}
 
 }

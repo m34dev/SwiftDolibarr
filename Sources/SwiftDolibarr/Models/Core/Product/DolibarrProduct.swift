@@ -284,6 +284,31 @@ public final class DolibarrProduct: CommonBusinessObject {
 		super.hash(into: &hasher)
 	}
 
+	override public func isEqual(to other: CommonBusinessObject) -> Bool {
+		guard let other = other as? DolibarrProduct else { return false }
+		return ref == other.ref
+		&& sellStatus == other.sellStatus
+		&& buyStatus == other.buyStatus
+		&& typeCode == other.typeCode
+		&& label == other.label
+		&& description == other.description
+		&& duration == other.duration
+		&& finished == other.finished
+		&& priceExclTax == other.priceExclTax
+		&& priceInclTax == other.priceInclTax
+		&& priceMinExclTax == other.priceMinExclTax
+		&& priceMinInclTax == other.priceMinInclTax
+		&& priceBaseType == other.priceBaseType
+		&& priceLabel == other.priceLabel
+		&& taxRate == other.taxRate
+		&& url == other.url
+		&& barcode == other.barcode
+		&& barcodeType == other.barcodeType
+		&& stockWarehouse == other.stockWarehouse
+		&& defaultWarehouseId == other.defaultWarehouseId
+		&& super.isEqual(to: other)
+	}
+
 	override public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encodeIfNotEmpty(ref, forKey: .ref)

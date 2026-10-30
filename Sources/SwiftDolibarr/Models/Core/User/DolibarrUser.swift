@@ -149,6 +149,17 @@ public final class DolibarrUser: CommonBusinessObject {
 		super.hash(into: &hasher)
 	}
 
+	override public func isEqual(to other: CommonBusinessObject) -> Bool {
+		guard let other = other as? DolibarrUser else { return false }
+		return admin == other.admin
+		&& login == other.login
+		&& lastname == other.lastname
+		&& firstname == other.firstname
+		&& supervisorId == other.supervisorId
+		&& rights == other.rights
+		&& super.isEqual(to: other)
+	}
+
 	override public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(admin, forKey: .admin)

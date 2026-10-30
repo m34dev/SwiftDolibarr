@@ -253,6 +253,24 @@ public class CommonCommercialTransactionObjectLine: CommonBusinessObjectLine {
 		super.hash(into: &hasher)
 	}
 
+	override public func isEqual(to other: CommonBusinessObjectLine) -> Bool {
+		guard let other = other as? CommonCommercialTransactionObjectLine else { return false }
+		return specialCode == other.specialCode
+		&& taxRate == other.taxRate
+		&& unitPriceExclTax == other.unitPriceExclTax
+		&& discountRate == other.discountRate
+		&& totalExclTax == other.totalExclTax
+		&& totalInclTax == other.totalInclTax
+		&& totalTax == other.totalTax
+		&& productId == other.productId
+		&& productRef == other.productRef
+		&& productLabel == other.productLabel
+		&& quantity == other.quantity
+		&& description == other.description
+		&& unitPriceInclTax == other.unitPriceInclTax
+		&& super.isEqual(to: other)
+	}
+
 	override public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(specialCode, forKey: .specialCode)

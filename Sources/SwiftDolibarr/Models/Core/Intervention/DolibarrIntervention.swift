@@ -382,6 +382,30 @@ public final class DolibarrIntervention: CommonBusinessObject {
 		super.hash(into: &hasher)
 	}
 
+	override public func isEqual(to other: CommonBusinessObject) -> Bool {
+		guard let other = other as? DolibarrIntervention else { return false }
+		return thirdPartyId == other.thirdPartyId
+		&& ref == other.ref
+		&& lines == other.lines
+		&& contractId == other.contractId
+		&& projectId == other.projectId
+		&& dateStart == other.dateStart
+		&& dateEnd == other.dateEnd
+		&& durationSeconds == other.durationSeconds
+		&& description == other.description
+		&& clientRef == other.clientRef
+		&& lastMainDoc == other.lastMainDoc
+		&& externalContactIds == other.externalContactIds
+		&& internalContactIds == other.internalContactIds
+		&& dateCreate == other.dateCreate
+		&& dateModify == other.dateModify
+		&& dateValidate == other.dateValidate
+		&& dateClose == other.dateClose
+		&& userCreateId == other.userCreateId
+		&& userModifyId == other.userModifyId
+		&& super.isEqual(to: other)
+	}
+
 	override public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encodeIfNotEmpty(thirdPartyId, forKey: .thirdPartyId)

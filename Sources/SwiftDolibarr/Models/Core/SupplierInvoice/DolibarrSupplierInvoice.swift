@@ -312,6 +312,25 @@ public final class DolibarrSupplierInvoice: CommonCommercialTransactionObject {
 		super.hash(into: &hasher)
 	}
 
+	override public func isEqual(to other: CommonBusinessObject) -> Bool {
+		guard let other = other as? DolibarrSupplierInvoice else { return false }
+		return date == other.date
+		&& typeCode == other.typeCode
+		&& paidCode == other.paidCode
+		&& lines == other.lines
+		&& supplierRef == other.supplierRef
+		&& dateCreation == other.dateCreation
+		&& dateValidation == other.dateValidation
+		&& dueDate == other.dueDate
+		&& lastMainDoc == other.lastMainDoc
+		&& userAuthorId == other.userAuthorId
+		&& paymentMethodId == other.paymentMethodId
+		&& paymentTermsId == other.paymentTermsId
+		&& closeCode == other.closeCode
+		&& closeNote == other.closeNote
+		&& super.isEqual(to: other)
+	}
+
 	override public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encodeIfNotZero(date, forKey: .date)

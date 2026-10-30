@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.63.0] - 2026-10-30
+
+### Added
+- Equatable overloading for all CommonBusinessObject and CommonBusinessObjectLine subclasses
+- Supplier order second-level approval user permission
+
+### Fixed
+- DolibarrCategory and DolibarrObjectStatus equality now matches their hash
+
 ## [0.62.0] - 2026-10-29
 
 ### Added
