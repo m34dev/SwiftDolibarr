@@ -734,6 +734,185 @@ private func makeContact() -> DolibarrContact {
     #expect(methods[1].label == "En ligne")
 }
 
+/// Live `GET /orders` response from Dolibarr v24 (`subprice` and `subprice_ttc` returned as numbers)
+@Test func decodeLiveOrdersV24() async throws {
+    let json = """
+    [
+      {
+        "id": "1",
+        "entity": "1",
+        "import_key": null,
+        "array_options": {
+          "options_test": null,
+          "options_onepagebasket_hide_documents": null
+        },
+        "array_languages": null,
+        "contacts_ids": null,
+        "contacts_ids_internal": null,
+        "linkedObjectsIds": {
+          "facture": {
+            "2": "1",
+            "18": "6",
+            "24": "11"
+          },
+          "shipping": {
+            "12": "1"
+          },
+          "propal": {
+            "1": "2"
+          }
+        },
+        "canvas": null,
+        "fk_project": null,
+        "contact_id": null,
+        "user": null,
+        "product": null,
+        "origin_type": null,
+        "origin_id": null,
+        "ref": "CO2504-0001",
+        "ref_ext": null,
+        "statut": "3",
+        "status": "3",
+        "country_id": null,
+        "country_code": null,
+        "state_id": null,
+        "region_id": null,
+        "mode_reglement_id": null,
+        "cond_reglement_id": "2",
+        "demand_reason_id": null,
+        "transport_mode_id": null,
+        "shipping_method_id": null,
+        "shipping_method": null,
+        "multicurrency_code": "EUR",
+        "multicurrency_tx": "1.00000000",
+        "multicurrency_total_ht": "80.00000000",
+        "multicurrency_total_tva": "0.00000000",
+        "multicurrency_total_localtax1": null,
+        "multicurrency_total_localtax2": null,
+        "multicurrency_total_ttc": "80.00000000",
+        "model_pdf": "eratosthene",
+        "last_main_doc": "commande/CO2504-0001/CO2504-0001.pdf",
+        "fk_account": null,
+        "note_public": "",
+        "note_private": "",
+        "total_ht": "80.00000000",
+        "total_tva": "0.00000000",
+        "total_localtax1": "0.00000000",
+        "total_localtax2": "0.00000000",
+        "total_ttc": "80.00000000",
+        "lines": [
+          {
+            "id": "1",
+            "entity": null,
+            "import_key": null,
+            "array_options": {
+              "options_soustotal_level": null,
+              "options_soustotal_type": null,
+              "options_soustotal_hidden": null,
+              "options_soustotal_fk_free": null,
+              "options_soustotal_always_shown": null,
+              "options_soustotal_page_break": null
+            },
+            "array_languages": null,
+            "contacts_ids": null,
+            "contacts_ids_internal": null,
+            "linkedObjectsIds": null,
+            "canvas": null,
+            "origin_type": null,
+            "origin_id": null,
+            "ref": "produit2",
+            "ref_ext": "",
+            "statut": null,
+            "status": null,
+            "multicurrency_tx": null,
+            "multicurrency_total_ht": "80.00000000",
+            "multicurrency_total_tva": "0.00000000",
+            "multicurrency_total_ttc": "80.00000000",
+            "last_main_doc": null,
+            "total_ht": "80.00000000",
+            "total_tva": "0.00000000",
+            "total_localtax1": "0.00000000",
+            "total_localtax2": "0.00000000",
+            "total_ttc": "80.00000000",
+            "lines": null,
+            "specimen": 0,
+            "extraparams": [],
+            "rowid": "1",
+            "weight_units": "0",
+            "volume_units": "0",
+            "product_type": "0",
+            "fk_product": "3",
+            "desc": "produit 1",
+            "description": "produit 1",
+            "product_ref": "produit2",
+            "product_label": "produit 2",
+            "product_desc": "produit 1",
+            "product_custom_code": "",
+            "fk_product_type": "0",
+            "qty": "4",
+            "remise_percent": "0",
+            "info_bits": "0",
+            "special_code": "0",
+            "subprice": 20,
+            "subprice_ttc": 0,
+            "tva_tx": "0.0000",
+            "multicurrency_subprice": "20.00000000",
+            "multicurrency_subprice_ttc": "0.00000000",
+            "libelle": "produit 2",
+            "price": "20",
+            "localtax1_tx": "0.0000",
+            "localtax2_tx": "0.0000",
+            "fk_commande": "1",
+            "commande_id": "1",
+            "rang": "1",
+            "pa_ht": "0.00000000",
+            "marge_tx": "",
+            "marque_tx": 100,
+            "date_start": "",
+            "date_end": ""
+          }
+        ],
+        "date_creation": 1743773588,
+        "date_validation": 1743773595,
+        "date_modification": 1773132910,
+        "user_creation_id": "3",
+        "user_validation_id": "3",
+        "user_modification_id": "5",
+        "specimen": 0,
+        "extraparams": [],
+        "socid": "2",
+        "ref_client": null,
+        "billed": "0",
+        "cond_reglement_code": "30D",
+        "date": 1743717600,
+        "date_commande": 1743717600,
+        "delivery_date": "",
+        "source": "0",
+        "signed_status": 0,
+        "user_author_id": "3"
+      }
+    ]
+    """
+    let decoder = JSONDecoder()
+    let orders = try decoder.decode([DolibarrOrder].self, from: Data(json.utf8))
+    let order = try #require(orders.first)
+
+    #expect(order.ref == "CO2504-0001")
+    #expect(order.thirdPartyId == "2")
+    #expect(order.totalExclTax == "80.00000000")
+    #expect(order.lines.count == 1)
+
+    let line = order.lines[0]
+    #expect(line.orderId == "1")
+    #expect(line.quantity == "4")
+    #expect(line.unitPriceExclTax == "20")
+    #expect(line.unitPriceInclTax == "0")
+
+    let encoder = JSONEncoder()
+    let redecoded = try decoder.decode([DolibarrOrder].self, from: encoder.encode(orders))
+    #expect(redecoded == orders)
+}
+
 @Test func warehousesDifferingInLabelAreNotEqual() async throws {
     let warehouse = DolibarrWarehouse(label: "Main", city: "Lyon", id: "3", statusCode: "1")
     let copy = DolibarrWarehouse(copying: warehouse)
