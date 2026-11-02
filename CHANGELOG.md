@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.64.2] - 2026-11-02
+
+### Fixed
+- Document lists returned by Dolibarr v24 (no id, path, fullname, src_object_type, src_object_id) and files without an ECM entry now decode
+
 ## [0.64.1] - 2026-11-02
 
 ### Fixed

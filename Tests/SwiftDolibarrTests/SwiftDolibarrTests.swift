@@ -1039,3 +1039,301 @@ private func makeInvoice() -> DolibarrInvoice {
     let redecoded = try decoder.decode(DolibarrUserPermissions.self, from: encoder.encode(permissions))
     #expect(redecoded == permissions)
 }
+
+/// Live `GET /documents` response from Dolibarr v21 (supplier order, `db` object and server path removed)
+@Test func decodeLiveDocumentsV21() async throws {
+    let json = """
+    [
+      {
+        "name": null,
+        "path": "/var/www/documents/fournisseur/commande/PO2506-0001",
+        "level1name": "PO2506-0001",
+        "relativename": "PO2506-0001.pdf",
+        "fullname": "/var/www/documents/fournisseur/commande/PO2506-0001/PO2506-0001.pdf",
+        "date": 1749823249,
+        "size": 8248,
+        "type": "file",
+        "module": null,
+        "id": "4",
+        "entity": "1",
+        "error": null,
+        "errors": [],
+        "\\u0000CommonObject\\u0000validateFieldsErrors": [],
+        "element": null,
+        "array_options": [],
+        "\\u0000CommonObject\\u0000linkedObjectsFullLoaded": [],
+        "ref": "4",
+        "description": "",
+        "label": "d89621cbceecf537199642ec40f6ebd2",
+        "filename": "PO2506-0001.pdf",
+        "filepath": "fournisseur/commande/PO2506-0001",
+        "fullpath_orig": "",
+        "keywords": "",
+        "content": null,
+        "cover": null,
+        "position": "1",
+        "gen_or_uploaded": "generated",
+        "date_c": 1749822350,
+        "date_m": 1749823249,
+        "fk_user_c": "1",
+        "fk_user_m": "1",
+        "acl": null,
+        "src_object_type": "commande_fournisseur",
+        "src_object_id": "1",
+        "share": null
+      }
+    ]
+    """
+    let decoder = JSONDecoder()
+    let documents = try decoder.decode([DolibarrDocument].self, from: Data(json.utf8))
+    #expect(documents.count == 1)
+
+    let document = documents[0]
+    #expect(document.id == "4")
+    #expect(document.name == nil)
+    #expect(document.path == "/var/www/documents/fournisseur/commande/PO2506-0001")
+    #expect(document.level1name == "PO2506-0001")
+    #expect(document.relativename == "PO2506-0001.pdf")
+    #expect(document.fullname == "/var/www/documents/fournisseur/commande/PO2506-0001/PO2506-0001.pdf")
+    #expect(document.date == 1749823249)
+    #expect(document.size == 8248)
+    #expect(document.type == "file")
+    #expect(document.filename == "PO2506-0001.pdf")
+    #expect(document.filepath == "fournisseur/commande/PO2506-0001")
+    #expect(document.genOrUploaded == "generated")
+    #expect(document.srcObjectType == "commande_fournisseur")
+    #expect(document.srcObjectId == "1")
+    #expect(document.share == nil)
+}
+
+/// `GET /documents` response shape from Dolibarr v23 (dol_dir_list row merged with the ECM line)
+@Test func decodeLiveDocumentsV23() async throws {
+    let json = """
+    [
+      {
+        "name": null,
+        "path": "/var/www/documents/fournisseur/commande/PO2506-0001",
+        "level1name": "PO2506-0001",
+        "relativename": "PO2506-0001.pdf",
+        "fullname": "/var/www/documents/fournisseur/commande/PO2506-0001/PO2506-0001.pdf",
+        "date": 1749823249,
+        "size": 8248,
+        "type": "file",
+        "id": "4",
+        "ref": "4",
+        "label": "d89621cbceecf537199642ec40f6ebd2",
+        "filename": "PO2506-0001.pdf",
+        "filepath": "fournisseur/commande/PO2506-0001",
+        "position": "1",
+        "gen_or_uploaded": "generated",
+        "date_c": 1749822350,
+        "src_object_type": "commande_fournisseur",
+        "src_object_id": "1",
+        "share": null,
+        "content-type": "application/pdf"
+      }
+    ]
+    """
+    let decoder = JSONDecoder()
+    let document = try #require(try decoder.decode([DolibarrDocument].self, from: Data(json.utf8)).first)
+
+    #expect(document.id == "4")
+    #expect(document.filename == "PO2506-0001.pdf")
+    #expect(document.filepath == "fournisseur/commande/PO2506-0001")
+    #expect(document.genOrUploaded == "generated")
+    #expect(document.srcObjectType == "commande_fournisseur")
+    #expect(document.srcObjectId == "1")
+}
+
+/// Live `GET /documents` response from Dolibarr v24 (supplier order, no `id`, `path`, `fullname` or `src_object_*`)
+@Test func decodeLiveDocumentsV24() async throws {
+    let json = """
+    [
+      {
+        "name": "PO2610-0005.pdf",
+        "level1name": "PO2610-0005",
+        "relativename": "PO2610-0005.pdf",
+        "date": 1793380987,
+        "size": 19673,
+        "type": "file",
+        "ref": "136",
+        "label": "299f507314c0e063aa90056eee746a08",
+        "filepath": "fournisseur/commande/PO2610-0005",
+        "filename": "PO2610-0005.pdf",
+        "fullpath_orig": "",
+        "position": "1",
+        "gen_or_uploaded": "generated",
+        "description": null,
+        "keywords": "",
+        "cover": null,
+        "share": null,
+        "date_c": 1793380987,
+        "agenda_id": null,
+        "fk_user_c": "1",
+        "fk_user_m": null,
+        "note_private": null,
+        "note_public": null,
+        "content-type": "application/pdf"
+      }
+    ]
+    """
+    let decoder = JSONDecoder()
+    let documents = try decoder.decode([DolibarrDocument].self, from: Data(json.utf8))
+    #expect(documents.count == 1)
+
+    let document = documents[0]
+    #expect(document.id == "136")
+    #expect(document.name == "PO2610-0005.pdf")
+    #expect(document.path == "")
+    #expect(document.level1name == "PO2610-0005")
+    #expect(document.relativename == "PO2610-0005.pdf")
+    #expect(document.fullname == "")
+    #expect(document.date == 1793380987)
+    #expect(document.size == 19673)
+    #expect(document.type == "file")
+    #expect(document.filename == "PO2610-0005.pdf")
+    #expect(document.filepath == "fournisseur/commande/PO2610-0005")
+    #expect(document.genOrUploaded == "generated")
+    #expect(document.srcObjectType == "")
+    #expect(document.srcObjectId == "")
+    #expect(document.share == nil)
+}
+
+/// `GET /documents` response shape from Dolibarr develop (v24 shape plus `date_creation`)
+@Test func decodeDocumentsDevelop() async throws {
+    let json = """
+    [
+      {
+        "name": "PO2610-0005.pdf",
+        "level1name": "PO2610-0005",
+        "relativename": "PO2610-0005.pdf",
+        "date": 1793380987,
+        "size": 19673,
+        "type": "file",
+        "ref": "136",
+        "filepath": "fournisseur/commande/PO2610-0005",
+        "filename": "PO2610-0005.pdf",
+        "gen_or_uploaded": "generated",
+        "share": null,
+        "date_c": 1793380987,
+        "date_creation": 1793380987,
+        "content-type": "application/pdf"
+      }
+    ]
+    """
+    let decoder = JSONDecoder()
+    let document = try #require(try decoder.decode([DolibarrDocument].self, from: Data(json.utf8)).first)
+
+    #expect(document.id == "136")
+    #expect(document.filename == "PO2610-0005.pdf")
+}
+
+/// `GET /documents` item for a file without an ECM entry (dol_dir_list fields only)
+@Test func decodeDocumentWithoutEcmRow() async throws {
+    let json = """
+    {
+        "name": "photo.jpg",
+        "level1name": "PO2610-0005",
+        "relativename": "photo.jpg",
+        "date": 1793380987,
+        "size": 1024,
+        "type": "file"
+    }
+    """
+    let decoder = JSONDecoder()
+    let document = try decoder.decode(DolibarrDocument.self, from: Data(json.utf8))
+
+    #expect(document.id == "PO2610-0005/photo.jpg")
+    #expect(document.filename == "photo.jpg")
+    #expect(document.filepath == "")
+    #expect(document.genOrUploaded == "")
+    #expect(document.path == "")
+    #expect(document.fullname == "")
+    #expect(document.srcObjectType == "")
+}
+
+/// `GET /documents` item from Dolibarr v24 with the ECM rowid `ref` returned as a number
+@Test func decodeDocumentWithNumericRef() async throws {
+    let json = """
+    {
+        "name": "PO2610-0005.pdf",
+        "level1name": "PO2610-0005",
+        "relativename": "PO2610-0005.pdf",
+        "date": 1793380987,
+        "size": 19673,
+        "type": "file",
+        "ref": 136,
+        "filepath": "fournisseur/commande/PO2610-0005",
+        "filename": "PO2610-0005.pdf"
+    }
+    """
+    let decoder = JSONDecoder()
+    let document = try decoder.decode(DolibarrDocument.self, from: Data(json.utf8))
+
+    #expect(document.id == "136")
+}
+
+/// `GET /documents` response from Dolibarr v24 mixing a file with and a file without an ECM entry
+@Test func decodeMixedDocumentList() async throws {
+    let json = """
+    [
+      {
+        "name": "PO2610-0005.pdf",
+        "level1name": "PO2610-0005",
+        "relativename": "PO2610-0005.pdf",
+        "date": 1793380987,
+        "size": 19673,
+        "type": "file",
+        "ref": "136",
+        "filepath": "fournisseur/commande/PO2610-0005",
+        "filename": "PO2610-0005.pdf",
+        "gen_or_uploaded": "generated"
+      },
+      {
+        "name": "photo.jpg",
+        "level1name": "PO2610-0005",
+        "relativename": "photo.jpg",
+        "date": 1793380990,
+        "size": 1024,
+        "type": "file"
+      }
+    ]
+    """
+    let decoder = JSONDecoder()
+    let documents = try decoder.decode([DolibarrDocument].self, from: Data(json.utf8))
+
+    #expect(documents.count == 2)
+    #expect(documents[0].id == "136")
+    #expect(documents[1].id == "PO2610-0005/photo.jpg")
+    #expect(documents[0] != documents[1])
+}
+
+@Test func decodeDocumentMissingRequiredKeyFails() async throws {
+    let json = """
+    {
+        "name": "photo.jpg",
+        "level1name": "PO2610-0005",
+        "relativename": "photo.jpg",
+        "date": 1793380987,
+        "type": "file"
+    }
+    """
+    let decoder = JSONDecoder()
+    #expect(throws: DecodingError.self) {
+        try decoder.decode(DolibarrDocument.self, from: Data(json.utf8))
+    }
+}
+
+@Test func documentsWithSameFilenameInDifferentObjectsAreNotEqual() async throws {
+    let first = """
+    {"name": "photo.jpg", "level1name": "PO2610-0005", "relativename": "photo.jpg", "date": 1793380987, "size": 1024, "type": "file"}
+    """
+    let second = """
+    {"name": "photo.jpg", "level1name": "PO2610-0006", "relativename": "photo.jpg", "date": 1793380987, "size": 1024, "type": "file"}
+    """
+    let decoder = JSONDecoder()
+    let firstDocument = try decoder.decode(DolibarrDocument.self, from: Data(first.utf8))
+    let secondDocument = try decoder.decode(DolibarrDocument.self, from: Data(second.utf8))
+
+    #expect(firstDocument != secondDocument)
+}
