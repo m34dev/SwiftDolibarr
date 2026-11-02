@@ -170,7 +170,7 @@ public class CommonCommercialTransactionObjectLine: CommonBusinessObjectLine {
 			let container = try decoder.container(keyedBy: CodingKeys.self)
 			specialCode = try container.decode(String.self, forKey: .specialCode)
 			taxRate = try container.decode(String.self, forKey: .taxRate)
-			unitPriceExclTax = try container.decode(String.self, forKey: .unitPriceExclTax)
+			unitPriceExclTax = try container.decode(MultiType.self, forKey: .unitPriceExclTax).stringValue
 			discountRate = try container.decode(String.self, forKey: .discountRate)
 			totalExclTax = try container.decode(String.self, forKey: .totalExclTax)
 			totalInclTax = try container.decode(String.self, forKey: .totalInclTax)
@@ -180,7 +180,7 @@ public class CommonCommercialTransactionObjectLine: CommonBusinessObjectLine {
 			productLabel = try container.decodeIfPresent(String.self, forKey: .productLabel)
 			quantity = try container.decodeIfPresent(String.self, forKey: .quantity)
 			description = try container.decodeIfPresent(String.self, forKey: .description)
-			unitPriceInclTax = try container.decodeIfPresent(String.self, forKey: .unitPriceInclTax)
+			unitPriceInclTax = try container.decodeIfPresent(MultiType.self, forKey: .unitPriceInclTax)?.stringValue
 			try super.init(from: decoder)
 			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
