@@ -65,6 +65,7 @@ public final class DolibarrDocument: Hashable, Codable, DolibarrObject {
         case srcObjectType = "src_object_type"
         case srcObjectId = "src_object_id"
         case share
+        case ref
     }
 
     // MARK: - Inits
@@ -109,21 +110,38 @@ public final class DolibarrDocument: Hashable, Codable, DolibarrObject {
             Logger.logWithoutSignal("\(Self.self).init.decode", category: .api)
             #endif
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.id = try container.decode(String.self, forKey: .id)
-            self.name = try container.decodeIfPresent(String.self, forKey: .name)
-            self.path = try container.decode(String.self, forKey: .path)
-            self.level1name = try container.decode(String.self, forKey: .level1name)
-            self.relativename = try container.decode(String.self, forKey: .relativename)
-            self.fullname = try container.decode(String.self, forKey: .fullname)
+            // dol_dir_list fields, returned by every Dolibarr version
+            let name = try container.decodeIfPresent(String.self, forKey: .name)
+            let level1name = try container.decode(String.self, forKey: .level1name)
+            let relativename = try container.decode(String.self, forKey: .relativename)
+            self.name = name
+            self.level1name = level1name
+            self.relativename = relativename
             self.date = try container.decode(Int.self, forKey: .date)
             self.size = try container.decode(Int.self, forKey: .size)
             self.type = try container.decode(String.self, forKey: .type)
-            self.filename = try container.decode(String.self, forKey: .filename)
-            self.filepath = try container.decode(String.self, forKey: .filepath)
-            self.genOrUploaded = try container.decode(String.self, forKey: .genOrUploaded)
-            self.srcObjectType = try container.decode(String.self, forKey: .srcObjectType)
-            self.srcObjectId = try container.decode(String.self, forKey: .srcObjectId)
+            // Removed from the response since Dolibarr v24
+            self.path = try container.decodeIfPresent(String.self, forKey: .path) ?? ""
+            self.fullname = try container.decodeIfPresent(String.self, forKey: .fullname) ?? ""
+            // ECM fields, missing for files without an ECM entry
+            let filename = try container.decodeIfPresent(String.self, forKey: .filename) ?? name ?? relativename
+            let filepath = try container.decodeIfPresent(String.self, forKey: .filepath) ?? ""
+            self.filename = filename
+            self.filepath = filepath
+            self.genOrUploaded = try container.decodeIfPresent(String.self, forKey: .genOrUploaded) ?? ""
             self.share = try container.decodeIfPresent(String.self, forKey: .share)
+            // ECM fields no longer returned since Dolibarr v24
+            self.srcObjectType = try container.decodeIfPresent(String.self, forKey: .srcObjectType) ?? ""
+            self.srcObjectId = try container.decodeIfPresent(String.self, forKey: .srcObjectId) ?? ""
+            // ECM rowid is returned as id up to Dolibarr v23 and as ref since v24
+            if let ecmId = try container.decodeIfPresent(MultiType.self, forKey: .id)?.stringValue
+                ?? container.decodeIfPresent(MultiType.self, forKey: .ref)?.stringValue {
+                self.id = ecmId
+            } else if !filepath.isEmpty {
+                self.id = "\(filepath)/\(filename)"
+            } else {
+                self.id = "\(level1name)/\(relativename)"
+            }
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
             Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
             #endif
