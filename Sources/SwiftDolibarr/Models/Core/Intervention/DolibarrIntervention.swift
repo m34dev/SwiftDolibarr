@@ -277,7 +277,7 @@ public final class DolibarrIntervention: CommonBusinessObject {
 			self.ref = try container.decode(String.self, forKey: .ref)
 			self.lines = try container.decode([DolibarrInterventionLine].self, forKey: .lines)
 			self.contractId = try container.decodeIfPresent(String.self, forKey: .contractId)
-			self.projectId = try container.decodeIfPresent(String.self, forKey: .projectId)
+			self.projectId = try container.decodeIdIfPresent(forKey: .projectId)
 			self.dateStart = try container.decodeIfPresent(MultiType.self, forKey: .dateStart)?.intValue
 			self.dateEnd = try container.decodeIfPresent(MultiType.self, forKey: .dateEnd)?.intValue
 			self.durationSeconds = try container.decodeIfPresent(String.self, forKey: .durationSeconds)

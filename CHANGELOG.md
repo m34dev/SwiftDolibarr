@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.65.0] - 2026-11-05
+
+### Added
+- Project ID on commercial transactions, agenda events and warehouses
+
+### Fixed
+- Intervention and task project IDs returned as numbers now decode
+- DolibarrOrder and DolibarrQuote inits now set ref
+
 ## [0.64.2] - 2026-11-02
 
 ### Fixed

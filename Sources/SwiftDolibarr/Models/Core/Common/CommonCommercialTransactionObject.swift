@@ -73,6 +73,11 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
 	/// - Mapped Dolibarr property: **multicurrency_code**
 	public var multicurrencyCode: String?
 
+	/// Associated project ID
+	///
+	/// - Mapped Dolibarr property: **fk_project**
+	public var projectId: String?
+
 	/// Linked objects IDs dictionary
 	public var linkedObjectsIds: [String: [String: String]]?
 
@@ -107,6 +112,7 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
 		case totalTax = "total_tva"
 		case totalInclTax = "total_ttc"
 		case multicurrencyCode = "multicurrency_code"
+		case projectId = "fk_project"
 		case linkedObjectsIds = "linkedObjectsIds"
 	}
 
@@ -120,6 +126,7 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
 		totalTax: String = "0.00",
 		totalInclTax: String = "0.00",
 		multicurrencyCode: String? = nil,
+		projectId: String? = nil,
 		linkedObjectsIds: [String: [String: String]]? = nil,
 		id: String = "",
 		arrayOptions: [String: MultiType]? = nil,
@@ -132,6 +139,7 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
 		self.totalTax = totalTax
 		self.totalInclTax = totalInclTax
 		self.multicurrencyCode = multicurrencyCode
+		self.projectId = projectId
 		self.linkedObjectsIds = linkedObjectsIds
 		super.init(
 			id: id,
@@ -154,6 +162,7 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
 			self.totalTax = try container.decode(MultiType.self, forKey: .totalTax).stringValue
 			self.totalInclTax = try container.decode(MultiType.self, forKey: .totalInclTax).stringValue
 			self.multicurrencyCode = try container.decodeIfPresent(String.self, forKey: .multicurrencyCode)
+			self.projectId = try container.decodeIdIfPresent(forKey: .projectId)
 			if let dictlinkedObjectsIds = try? container.decode([String: [String: String]].self, forKey: .linkedObjectsIds) {
 				self.linkedObjectsIds = dictlinkedObjectsIds
 			} else {
@@ -183,6 +192,7 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
         self.totalTax = source.totalTax
         self.totalInclTax = source.totalInclTax
         self.multicurrencyCode = source.multicurrencyCode
+        self.projectId = source.projectId
         self.linkedObjectsIds = source.linkedObjectsIds
         super.init(copying: source)
     }
@@ -196,6 +206,7 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
         self.totalTax = source.totalTax
         self.totalInclTax = source.totalInclTax
         self.multicurrencyCode = source.multicurrencyCode
+        self.projectId = source.projectId
         self.linkedObjectsIds = source.linkedObjectsIds
         super.copy(source)
     }
@@ -209,6 +220,7 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
 		hasher.combine(totalTax)
 		hasher.combine(totalInclTax)
 		hasher.combine(optional: multicurrencyCode)
+		hasher.combine(optional: projectId)
 		hasher.combine(optional: linkedObjectsIds)
 		super.hash(into: &hasher)
 	}
@@ -221,6 +233,7 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
 		&& totalTax == other.totalTax
 		&& totalInclTax == other.totalInclTax
 		&& multicurrencyCode == other.multicurrencyCode
+		&& projectId == other.projectId
 		&& linkedObjectsIds == other.linkedObjectsIds
 		&& super.isEqual(to: other)
 	}
@@ -233,6 +246,7 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
 		try container.encode(totalTax, forKey: .totalTax)
 		try container.encode(totalInclTax, forKey: .totalInclTax)
 		try container.encodeIfPresent(multicurrencyCode, forKey: .multicurrencyCode)
+		try container.encodeIfPresent(projectId, forKey: .projectId)
 		try container.encodeIfPresent(linkedObjectsIds, forKey: .linkedObjectsIds)
 		try super.encode(to: encoder)
 	}
