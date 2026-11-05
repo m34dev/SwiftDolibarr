@@ -25,8 +25,8 @@ import Foundation
 ///
 /// Groups module-specific permission structs covering user management,
 /// expense reports, invoices, products, services, interventions,
-/// third parties, agenda, quotes, orders, suppliers, categories, barcodes,
-/// stock, and projects.
+/// third parties, agenda, quotes, orders, contracts, suppliers, categories,
+/// barcodes, stock, and projects.
 ///
 /// - SeeAlso: ``DolibarrUser``
 public struct DolibarrUserPermissions: Codable, Hashable {
@@ -43,6 +43,7 @@ public struct DolibarrUserPermissions: Codable, Hashable {
 	public var agenda: DolibarrUserPermissionsAgenda?
 	public var propale: DolibarrUserPermissionsQuote?
 	public var commande: DolibarrUserPermissionsOrder?
+	public var contrat: DolibarrUserPermissionsContract?
 	public var fournisseur: DolibarrUserPermissionsSupplier?
 	public var categorie: DolibarrUserPermissionsCategory?
 	public var barcode: DolibarrUserPermissionsBarcode?
@@ -64,6 +65,7 @@ public struct DolibarrUserPermissions: Codable, Hashable {
 		agenda: DolibarrUserPermissionsAgenda? = nil,
 		propale: DolibarrUserPermissionsQuote? = nil,
 		commande: DolibarrUserPermissionsOrder? = nil,
+		contrat: DolibarrUserPermissionsContract? = nil,
 		fournisseur: DolibarrUserPermissionsSupplier? = nil,
 		categorie: DolibarrUserPermissionsCategory? = nil,
 		barcode: DolibarrUserPermissionsBarcode? = nil,
@@ -82,6 +84,7 @@ public struct DolibarrUserPermissions: Codable, Hashable {
 		self.agenda = agenda
 		self.propale = propale
 		self.commande = commande
+		self.contrat = contrat
 		self.fournisseur = fournisseur
 		self.categorie = categorie
 		self.barcode = barcode
@@ -103,6 +106,7 @@ public struct DolibarrUserPermissions: Codable, Hashable {
 		self.agenda = try container.decodeIfPresent(DolibarrUserPermissionsAgenda.self, forKey: .agenda)
 		self.propale = try container.decodeIfPresent(DolibarrUserPermissionsQuote.self, forKey: .propale)
 		self.commande = try container.decodeIfPresent(DolibarrUserPermissionsOrder.self, forKey: .commande)
+		self.contrat = try container.decodeIfPresent(DolibarrUserPermissionsContract.self, forKey: .contrat)
 		self.fournisseur = try container.decodeIfPresent(DolibarrUserPermissionsSupplier.self, forKey: .fournisseur)
 		self.categorie = try container.decodeIfPresent(DolibarrUserPermissionsCategory.self, forKey: .categorie)
 		self.barcode = try container.decodeIfPresent(DolibarrUserPermissionsBarcode.self, forKey: .barcode)

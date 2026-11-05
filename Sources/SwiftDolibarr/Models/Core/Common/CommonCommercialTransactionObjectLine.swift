@@ -33,7 +33,7 @@ import OSLog
 /// ## Overview
 ///
 /// Concrete subclasses include ``DolibarrQuoteLine``, ``DolibarrOrderLine``,
-/// and ``DolibarrInvoiceLine``.
+/// ``DolibarrInvoiceLine``, and ``DolibarrContractLine``.
 ///
 /// - SeeAlso: ``CommonCommercialTransactionObject``
 public class CommonCommercialTransactionObjectLine: CommonBusinessObjectLine {
@@ -168,17 +168,17 @@ public class CommonCommercialTransactionObjectLine: CommonBusinessObjectLine {
 			Logger.logWithoutSignal("\(Self.self).init.decode", category: .api)
 			#endif
 			let container = try decoder.container(keyedBy: CodingKeys.self)
-			specialCode = try container.decode(String.self, forKey: .specialCode)
-			taxRate = try container.decode(String.self, forKey: .taxRate)
+			specialCode = try container.decodeIfPresent(MultiType.self, forKey: .specialCode)?.stringValue ?? "0"
+			taxRate = try container.decode(MultiType.self, forKey: .taxRate).stringValue
 			unitPriceExclTax = try container.decode(MultiType.self, forKey: .unitPriceExclTax).stringValue
-			discountRate = try container.decode(String.self, forKey: .discountRate)
-			totalExclTax = try container.decode(String.self, forKey: .totalExclTax)
-			totalInclTax = try container.decode(String.self, forKey: .totalInclTax)
-			totalTax = try container.decode(String.self, forKey: .totalTax)
-			productId = try container.decodeIfPresent(String.self, forKey: .productId)
+			discountRate = try container.decode(MultiType.self, forKey: .discountRate).stringValue
+			totalExclTax = try container.decode(MultiType.self, forKey: .totalExclTax).stringValue
+			totalInclTax = try container.decode(MultiType.self, forKey: .totalInclTax).stringValue
+			totalTax = try container.decode(MultiType.self, forKey: .totalTax).stringValue
+			productId = try container.decodeIfPresent(MultiType.self, forKey: .productId)?.stringValue
 			productRef = try container.decodeIfPresent(String.self, forKey: .productRef)
 			productLabel = try container.decodeIfPresent(String.self, forKey: .productLabel)
-			quantity = try container.decodeIfPresent(String.self, forKey: .quantity)
+			quantity = try container.decodeIfPresent(MultiType.self, forKey: .quantity)?.stringValue
 			description = try container.decodeIfPresent(String.self, forKey: .description)
 			unitPriceInclTax = try container.decodeIfPresent(MultiType.self, forKey: .unitPriceInclTax)?.stringValue
 			try super.init(from: decoder)

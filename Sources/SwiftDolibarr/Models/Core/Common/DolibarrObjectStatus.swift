@@ -26,8 +26,8 @@ import Foundation
 /// Each status has a ``code`` and a ``domain`` that identifies which
 /// object type the status applies to. Predefined static instances cover
 /// statuses for third parties, products, warehouses, quotes, orders,
-/// invoices, interventions, expense reports, projects, tasks, and
-/// agenda events.
+/// invoices, interventions, expense reports, projects, tasks,
+/// agenda events, contracts, and contract lines.
 ///
 /// - SeeAlso: ``DolibarrObjectDomain``
 /// - SeeAlso: ``DolibarrBusinessObject``
@@ -307,6 +307,36 @@ public struct DolibarrObjectStatus: Identifiable, Equatable, Hashable, Sendable 
 
 	public static let supplierInvoices: [DolibarrObjectStatus] = [
 		draft, validated, supplierInvoiceClosed, supplierInvoiceAbandoned
+	]
+
+	// Contract
+
+	public static let contractClosed: DolibarrObjectStatus = .init(
+		code: "2",
+		domain: .contract
+	)
+
+	public static let contracts: [DolibarrObjectStatus] = [
+		draft, validated, contractClosed
+	]
+
+	// Contract line
+
+	public static let contractLineInactive: DolibarrObjectStatus = .init(
+		code: "0",
+		domain: .contractLine
+	)
+	public static let contractLineOpen: DolibarrObjectStatus = .init(
+		code: "4",
+		domain: .contractLine
+	)
+	public static let contractLineClosed: DolibarrObjectStatus = .init(
+		code: "5",
+		domain: .contractLine
+	)
+
+	public static let contractLines: [DolibarrObjectStatus] = [
+		contractLineInactive, contractLineOpen, contractLineClosed
 	]
 
 	// MARK: - Protocol methods

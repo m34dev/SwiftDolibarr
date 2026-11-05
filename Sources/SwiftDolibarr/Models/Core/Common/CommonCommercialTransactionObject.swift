@@ -33,7 +33,7 @@ import OSLog
 /// ## Overview
 ///
 /// Concrete subclasses include ``DolibarrQuote``, ``DolibarrOrder``,
-/// and ``DolibarrInvoice``.
+/// ``DolibarrInvoice``, and ``DolibarrContract``.
 ///
 /// - SeeAlso: ``DolibarrCommercialTransaction``
 /// - SeeAlso: ``CommonCommercialTransactionObjectLine``
@@ -101,6 +101,11 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
 	/// Linked invoice IDs
 	public var linkedInvoiceIds: [String: String]? {
 		return linkedObjectsIds?["facture"]
+	}
+
+	/// Linked contract IDs
+	public var linkedContractIds: [String: String]? {
+		return linkedObjectsIds?["contrat"]
 	}
 
 	// MARK: - Enums

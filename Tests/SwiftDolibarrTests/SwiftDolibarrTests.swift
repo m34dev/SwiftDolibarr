@@ -1433,3 +1433,361 @@ func decodeProjectId(field: String, expected: String?) async throws {
     #expect(DolibarrSupplierOrder(ref: "PO2610-0001").ref == "PO2610-0001")
     #expect(DolibarrSupplierInvoice(ref: "SI2504-0001").ref == "SI2504-0001")
 }
+
+// MARK: - Contracts
+
+@Test func decodeContract() async throws {
+    let json = """
+    {
+        "id": "12",
+        "socid": "26",
+        "ref": "CT2610-0012",
+        "status": 2,
+        "total_ht": 90.5,
+        "total_tva": 18.1,
+        "total_ttc": 108.6,
+        "fk_project": "4",
+        "fk_contract_type": 1,
+        "date_contrat": "1792101600",
+        "date_validation": "",
+        "ref_customer": "CUST-1",
+        "ref_supplier": "SUP-1",
+        "signed_status": 0,
+        "commercial_signature_id": 3,
+        "commercial_suivi_id": "0",
+        "nbofservices": "2",
+        "nbofservicesclosed": 0,
+        "lines": [{
+            "id": "1",
+            "rang": "1",
+            "fk_contrat": 12,
+            "statut": "5",
+            "tva_tx": 20,
+            "subprice": 100,
+            "remise_percent": 10,
+            "total_ht": 90.5,
+            "total_tva": 18.1,
+            "total_ttc": 108.6,
+            "fk_product": 38,
+            "qty": 1,
+            "desc": "Maintenance",
+            "date_start": 1792101600,
+            "date_end_real": "1792144800",
+            "fk_user_cloture": 3,
+            "fk_unit": "0",
+            "commentaire": "Done"
+        }]
+    }
+    """
+    let decoder = JSONDecoder()
+    let contract = try decoder.decode(DolibarrContract.self, from: Data(json.utf8))
+    let line = try #require(contract.lines.first)
+
+    #expect(contract.thirdPartyId == "26")
+    #expect(contract.status == .contractClosed)
+    #expect(contract.totalExclTax == "90.5")
+    #expect(contract.projectId == "4")
+    #expect(contract.contractType == "1")
+    #expect(contract.dateContract == 1792101600)
+    #expect(contract.dateContracted == Date(timeIntervalSince1970: 1792101600))
+    #expect(contract.dateValidation == nil)
+    #expect(contract.customerRef == "CUST-1")
+    #expect(contract.supplierRef == "SUP-1")
+    #expect(contract.signedStatus == "0")
+    #expect(contract.salesSignatureUserId == "3")
+    #expect(contract.salesFollowUpUserId == nil)
+    #expect(contract.serviceCount == 2)
+    #expect(contract.servicesClosedCount == 0)
+
+    #expect(line.contractId == "12")
+    #expect(line.status == .contractLineClosed)
+    #expect(line.specialCode == "0")
+    #expect(line.taxRate == "20")
+    #expect(line.discountRate == "10")
+    #expect(line.productId == "38")
+    #expect(line.quantity == "1")
+    #expect(line.description == "Maintenance")
+    #expect(line.dateStarted == Date(timeIntervalSince1970: 1792101600))
+    #expect(line.dateEndReal == 1792144800)
+    #expect(line.userCloseId == "3")
+    #expect(line.unitId == nil)
+    #expect(line.comment == "Done")
+
+    let redecoded = try decoder.decode(DolibarrContract.self, from: JSONEncoder().encode(contract))
+    #expect(redecoded == contract)
+}
+
+/// Live contract list from Dolibarr v24, trimmed to mapped and representative keys
+@Test func decodeLiveContractsV24() async throws {
+    let json = """
+    [{
+        "id": "1", "entity": "1", "import_key": null, "array_options": [], "array_languages": null,
+        "contacts_ids": null, "contacts_ids_internal": null, "linkedObjectsIds": null, "fk_project": null,
+        "ref": "CT2610-0001", "ref_ext": null, "statut": "1", "status": "1", "multicurrency_code": null,
+        "model_pdf": null, "last_main_doc": "contract/(PROV1)/(PROV1).pdf", "note_public": null, "note_private": null,
+        "total_ht": 0, "total_tva": 0, "total_localtax1": null, "total_localtax2": null, "total_ttc": 0,
+        "lines": [{
+            "id": "1", "entity": null, "import_key": null, "array_options": [], "ref": "S500", "statut": "4", "status": "4",
+            "total_ht": "0.00000000", "total_tva": "0.00000000", "total_localtax1": "0.00000000",
+            "total_localtax2": "0.00000000", "total_ttc": "0.00000000", "lines": null, "date_creation": null,
+            "rowid": null, "fk_unit": null, "date_debut_prevue": null, "product_type": "1", "fk_product": "38",
+            "desc": "", "description": "", "product_ref": "S500", "product_label": "Serv 500", "product_desc": "",
+            "qty": "1", "remise_percent": "0", "info_bits": "0", "special_code": null, "subprice": "0.00000000",
+            "subprice_ttc": null, "tva_tx": "0.0000", "fk_contrat": "1", "type": "1", "label": null,
+            "date_commande": null, "date_start": "", "date_start_real": 1792144800, "date_end": "", "date_end_real": "",
+            "vat_src_code": null, "fk_user_author": "0", "fk_user_ouverture": "3", "fk_user_cloture": null,
+            "commentaire": null, "rang": "1"
+        }],
+        "date_creation": 1792101600, "date_validation": null, "date_modification": null, "tms": null,
+        "extraparams": null, "ref_customer": null, "from": null, "ref_supplier": null, "socid": "26", "fk_soc": "26",
+        "fk_user_author": null, "user_author_id": "3", "date_contrat": 1792101600, "commercial_signature_id": "3",
+        "fk_commercial_signature": null, "commercial_suivi_id": "3", "fk_commercial_suivi": null, "nbofservices": 1,
+        "nbofserviceswait": 0, "nbofservicesopened": 1, "nbofservicesexpired": 0, "nbofservicesclosed": 0,
+        "signed_status": "0"
+    }]
+    """
+    let decoder = JSONDecoder()
+    let contracts = try decoder.decode([DolibarrContract].self, from: Data(json.utf8))
+    let contract = try #require(contracts.first)
+    let line = try #require(contract.lines.first)
+
+    #expect(contract.ref == "CT2610-0001")
+    #expect(contract.statusCode == "1")
+    #expect(contract.status == .validated)
+    #expect(contract.thirdPartyId == "26")
+    #expect(contract.totalExclTax == "0")
+    #expect(contract.totalTax == "0")
+    #expect(contract.totalInclTax == "0")
+    #expect(contract.projectId == nil)
+    #expect(contract.arrayOptions == nil)
+    #expect(contract.dateCreation == contract.dateContract)
+    #expect(contract.userAuthorId == "3")
+    #expect(contract.servicesOpenCount == 1)
+
+    #expect(line.status == .contractLineOpen)
+    #expect(line.specialCode == "0")
+    #expect(line.dateStart == nil)
+    #expect(line.dateStartReal == 1792144800)
+    #expect(line.dateEnd == nil)
+    #expect(line.userOpenId == "3")
+    #expect(line.productRef == "S500")
+
+    let redecoded = try decoder.decode([DolibarrContract].self, from: JSONEncoder().encode(contracts))
+    #expect(redecoded == contracts)
+}
+
+/// Live contract list from Dolibarr v21, trimmed to mapped and representative keys
+@Test func decodeLiveContractsV21() async throws {
+    let json = """
+    [{
+        "module": null, "id": "1", "entity": "1", "import_key": null,
+        "array_options": {
+            "options_label": null,
+            "options_trainingsession_type": "1",
+            "options_trainingsession_location": "Centre",
+            "options_trainingsession_opco_financing": null
+        },
+        "contacts_ids": null, "linkedObjectsIds": null, "fk_project": null, "ref": "CT2603-0001", "statut": "1",
+        "status": "1", "multicurrency_code": null, "last_main_doc": "contract/CT2603-0001/CT2603-0001.pdf",
+        "note_public": null, "note_private": null, "total_ht": 90, "total_tva": 18, "total_localtax1": null,
+        "total_localtax2": null, "total_ttc": 108,
+        "lines": [{
+            "module": null, "id": "2", "entity": null, "array_options": [], "ref": "entretien", "statut": "4", "status": "4",
+            "total_ht": "90.00000000", "total_tva": "18.00000000", "total_localtax1": "0.00000000",
+            "total_localtax2": "0.00000000", "total_ttc": "108.00000000", "lines": null, "fk_unit": null,
+            "product_type": "1", "fk_product": "4", "desc": "", "description": "", "product_ref": "entretien",
+            "product_label": "entretien", "qty": "1", "remise_percent": "10", "special_code": null,
+            "subprice": "100.00000000", "tva_tx": "20.0000", "fk_contrat": "1", "date_start": "",
+            "date_start_real": 1772492400, "date_end": "", "date_end_real": "", "vat_src_code": "", "price": "100",
+            "fk_user_author": "0", "fk_user_ouverture": "1", "fk_user_cloture": null, "commentaire": null, "rang": "1"
+        }],
+        "date_creation": 1772492400, "date_validation": null, "ref_customer": null, "ref_supplier": null, "socid": "2",
+        "fk_soc": "2", "user_author_id": "1", "date_contrat": 1772492400, "commercial_signature_id": "1",
+        "commercial_suivi_id": "1", "nbofservices": 1, "nbofserviceswait": 0, "nbofservicesopened": 1,
+        "nbofservicesexpired": 0, "nbofservicesclosed": 0, "signed_status": "0"
+    }]
+    """
+    let decoder = JSONDecoder()
+    let contracts = try decoder.decode([DolibarrContract].self, from: Data(json.utf8))
+    let contract = try #require(contracts.first)
+    let line = try #require(contract.lines.first)
+
+    #expect(contract.totalExclTax == "90")
+    #expect(contract.totalTax == "18")
+    #expect(contract.totalInclTax == "108")
+    #expect(contract.pdfModel == nil)
+    #expect(contract.arrayOptions?["trainingsession_type"] == .string("1"))
+    #expect(contract.arrayOptions?["trainingsession_location"] == .string("Centre"))
+    #expect(contract.arrayOptions?["options_trainingsession_type"] == nil)
+
+    #expect(line.id == "2")
+    #expect(line.discountRate == "10")
+    #expect(line.unitPriceExclTax == "100.00000000")
+    #expect(line.unitPriceInclTax == nil)
+    #expect(line.taxRate == "20.0000")
+    #expect(line.totalInclTax == "108.00000000")
+    #expect(line.dateStartReal == 1772492400)
+
+    let redecoded = try decoder.decode([DolibarrContract].self, from: JSONEncoder().encode(contracts))
+    #expect(redecoded == contracts)
+}
+
+@Test func decodeContractWithoutLines() async throws {
+    let json = """
+    { "id": "1", "socid": "26", "ref": "CT1", "status": "0", "total_ht": 0, "total_tva": 0, "total_ttc": 0 }
+    """
+    let contract = try JSONDecoder().decode(DolibarrContract.self, from: Data(json.utf8))
+
+    #expect(contract.lines.isEmpty)
+    #expect(contract.status == .draft)
+}
+
+@Test func contractLineFallsBackToDescriptionKey() async throws {
+    let json = """
+    {
+        "id": "1", "rang": "1", "fk_contrat": "1", "status": "0", "tva_tx": "0", "subprice": "0",
+        "remise_percent": "0", "total_ht": "0", "total_tva": "0", "total_ttc": "0",
+        "description": "Support"
+    }
+    """
+    let line = try JSONDecoder().decode(DolibarrContractLine.self, from: Data(json.utf8))
+
+    #expect(line.description == "Support")
+    #expect(line.status == .contractLineInactive)
+}
+
+@Test func contractAndLineStatusesUseTheirOwnCodes() async throws {
+    #expect(DolibarrContract(statusCode: "0").status == .draft)
+    #expect(DolibarrContract(statusCode: "1").status == .validated)
+    #expect(DolibarrContract(statusCode: "2").status == .contractClosed)
+    #expect(DolibarrContract(statusCode: "4").status == .unknown)
+
+    #expect(DolibarrContractLine(statusCode: "0").status == .contractLineInactive)
+    #expect(DolibarrContractLine(statusCode: "4").status == .contractLineOpen)
+    #expect(DolibarrContractLine(statusCode: "5").status == .contractLineClosed)
+    #expect(DolibarrContractLine(statusCode: "1").status == .unknown)
+}
+
+private func makeContract() -> DolibarrContract {
+    DolibarrContract(
+        lines: [DolibarrContractLine(contractId: "5", statusCode: "4", quantity: "1", id: "51", rang: "1")],
+        dateContract: 1700000000,
+        thirdPartyId: "7",
+        statusCode: "1",
+        ref: "CT2026-0001",
+        projectId: "3",
+        linkedObjectsIds: ["commande": ["1": "2"]],
+        id: "5"
+    )
+}
+
+@Test func contractCopyIsEqualWithSameHash() async throws {
+    let contract = makeContract()
+    let copy = DolibarrContract(copying: contract)
+
+    #expect(copy == contract)
+    #expect(copy.hashValue == contract.hashValue)
+    #expect(AnyHashable(copy) == AnyHashable(contract))
+    #expect(copy.ref == "CT2026-0001")
+    #expect(copy.projectId == "3")
+
+    let target = DolibarrContract()
+    target.copy(contract)
+    #expect(target == contract)
+}
+
+@Test func contractsDifferingInSubclassOrCommercialFieldsAreNotEqual() async throws {
+    let contract = makeContract()
+
+    let redated = DolibarrContract(copying: contract)
+    redated.dateContract = 1700000001
+    #expect(redated != contract)
+    #expect(AnyHashable(redated) != AnyHashable(contract))
+    #expect((redated as CommonBusinessObject) != (contract as CommonBusinessObject))
+
+    let renamed = DolibarrContract(copying: contract)
+    renamed.ref = "CT2026-0002"
+    #expect(renamed != contract)
+    #expect((renamed as CommonBusinessObject) != (contract as CommonBusinessObject))
+}
+
+@Test func contractLinesDifferingInSubclassOrCommercialFieldsAreNotEqual() async throws {
+    let line = DolibarrContractLine(contractId: "5", statusCode: "4", quantity: "1", id: "51", rang: "1")
+    let copy = DolibarrContractLine(copying: line)
+
+    #expect(copy == line)
+    #expect(copy.hashValue == line.hashValue)
+
+    let closed = DolibarrContractLine(copying: line)
+    closed.statusCode = "5"
+    #expect(closed != line)
+    #expect(AnyHashable(closed) != AnyHashable(line))
+    #expect((closed as CommonBusinessObjectLine) != (line as CommonBusinessObjectLine))
+
+    let requantified = DolibarrContractLine(copying: line)
+    requantified.quantity = "3"
+    #expect(requantified != line)
+
+    let orderLine = DolibarrOrderLine(id: "51", rang: "1")
+    #expect((DolibarrContractLine(id: "51", rang: "1") as CommonBusinessObjectLine) != (orderLine as CommonBusinessObjectLine))
+}
+
+@Test func commercialLinesDecodeNumericFieldsAndMissingSpecialCode() async throws {
+    let json = """
+    {
+        "id": "1", "rang": "1", "fk_commande": "8", "tva_tx": 20, "subprice": 100, "remise_percent": 10.5,
+        "total_ht": 90, "total_tva": 18, "total_ttc": 108, "fk_product": 38, "qty": 2
+    }
+    """
+    let line = try JSONDecoder().decode(DolibarrOrderLine.self, from: Data(json.utf8))
+
+    #expect(line.specialCode == "0")
+    #expect(line.taxRate == "20")
+    #expect(line.discountRate == "10.5")
+    #expect(line.totalExclTax == "90")
+    #expect(line.totalTax == "18")
+    #expect(line.totalInclTax == "108")
+    #expect(line.productId == "38")
+    #expect(line.quantity == "2")
+}
+
+@Test func commercialTransactionsExposeLinkedContractIds() async throws {
+    let order = DolibarrOrder()
+    order.linkedObjectsIds = ["contrat": ["3": "1"]]
+
+    #expect(order.linkedContractIds == ["3": "1"])
+    #expect(DolibarrOrder().linkedContractIds == nil)
+}
+
+@Test func decodeContractUserPermissions() async throws {
+    let json = """
+    {
+        "user": {
+            "user": {"lire": 1},
+            "self": {"creer": 1},
+            "user_advance": {"readperms": 1},
+            "self_advance": {"readperms": 1},
+            "group_advance": {"read": 1}
+        },
+        "contrat": {
+            "lire": 1,
+            "creer": 1,
+            "activer": 1,
+            "desactiver": 1,
+            "supprimer": 1
+        }
+    }
+    """
+    let decoder = JSONDecoder()
+    let permissions = try decoder.decode(DolibarrUserPermissions.self, from: Data(json.utf8))
+    let contract = try #require(permissions.contrat)
+
+    #expect(contract.lire == 1)
+    #expect(contract.creer == 1)
+    #expect(contract.activer == 1)
+    #expect(contract.desactiver == 1)
+    #expect(contract.supprimer == 1)
+
+    let redecoded = try decoder.decode(DolibarrUserPermissions.self, from: JSONEncoder().encode(permissions))
+    #expect(redecoded == permissions)
+}
