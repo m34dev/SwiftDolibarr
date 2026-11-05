@@ -37,6 +37,7 @@ import OSLog
 ///
 /// - Note: Requires the **Fichinter** module to be activated in Dolibarr.
 /// - SeeAlso: ``DolibarrInterventionLine``
+/// - SeeAlso: ``DolibarrContract``
 #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 @Observable
 #endif

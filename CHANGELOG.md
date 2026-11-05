@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.66.0] - 2026-11-05
+
+### Added
+- Dolibarr contract and contract line
+- Contract and contract line statuses
+- Contract user permissions
+- Linked contract IDs on commercial transactions
+
+### Changed
+- Commercial transaction lines now decode numeric tax rates, discounts, totals, quantities and product IDs, and a null or missing special code
+
 ## [0.65.0] - 2026-11-05
 
 ### Added
