@@ -194,7 +194,7 @@ public final class DolibarrTask: CommonBusinessObject {
 			let container = try decoder.container(keyedBy: CodingKeys.self)
 			self.ref = try container.decode(String.self, forKey: .ref)
 			self.label = try container.decode(String.self, forKey: .label)
-			self.projectId = try container.decode(String.self, forKey: .projectId)
+			self.projectId = try container.decode(MultiType.self, forKey: .projectId).stringValue
 			self.parentId = try container.decode(String.self, forKey: .parentId)
 			self.billable = try container.decodeIfPresent(String.self, forKey: .billable)
             self.dateStart = try container.decodeIfPresent(MultiType.self, forKey: .dateStart)?.intValue

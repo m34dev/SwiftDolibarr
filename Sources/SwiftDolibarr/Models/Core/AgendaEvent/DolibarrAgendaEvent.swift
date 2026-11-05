@@ -121,6 +121,11 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 	/// - Mapped Dolibarr property: **socid**
 	public var thirdPartyId: String?
 
+	/// Associated project ID
+	///
+	/// - Mapped Dolibarr property: **fk_project**
+	public var projectId: String?
+
 	/// Agenda event priority
 	public var priority: String?
 
@@ -210,6 +215,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		case userModifiedId = "usermodid"
 		case location
 		case thirdPartyId = "socid"
+		case projectId = "fk_project"
 		case priority
 		case usersAssigned = "userassigned"
 		case userOwnerId = "userownerid"
@@ -237,6 +243,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		userModifiedId: String? = nil,
 		location: String? = nil,
 		thirdPartyId: String? = nil,
+		projectId: String? = nil,
 		priority: String? = nil,
 		usersAssigned: [String: DolibarrAgendaEventUserAssigned]? = nil,
 		userOwnerId: String? = nil,
@@ -265,6 +272,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		self.userModifiedId = userModifiedId
 		self.location = location
 		self.thirdPartyId = thirdPartyId
+		self.projectId = projectId
 		self.priority = priority
 		self.usersAssigned = usersAssigned
 		self.userOwnerId = userOwnerId
@@ -301,6 +309,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 			self.userModifiedId = try container.decodeIfPresent(String.self, forKey: .userModifiedId)
 			self.location = try container.decodeIfPresent(String.self, forKey: .location)
 			self.thirdPartyId = try container.decodeIfPresent(String.self, forKey: .thirdPartyId)
+			self.projectId = try container.decodeIdIfPresent(forKey: .projectId)
 			self.priority = try container.decodeIfPresent(String.self, forKey: .priority)
 			if let userAssigned = try? container.decode([String: DolibarrAgendaEventUserAssigned].self, forKey: .usersAssigned) {
 				self.usersAssigned = userAssigned
@@ -345,6 +354,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		self.userModifiedId = source.userModifiedId
 		self.location = source.location
 		self.thirdPartyId = source.thirdPartyId
+		self.projectId = source.projectId
 		self.priority = source.priority
 		self.usersAssigned = source.usersAssigned
 		self.userOwnerId = source.userOwnerId
@@ -373,6 +383,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		self.userModifiedId = source.userModifiedId
 		self.location = source.location
 		self.thirdPartyId = source.thirdPartyId
+		self.projectId = source.projectId
 		self.priority = source.priority
 		self.usersAssigned = source.usersAssigned
 		self.userOwnerId = source.userOwnerId
@@ -401,6 +412,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		hasher.combine(optional: userModifiedId)
 		hasher.combine(optional: location)
 		hasher.combine(optional: thirdPartyId)
+		hasher.combine(optional: projectId)
 		hasher.combine(optional: priority)
 		hasher.combine(optional: usersAssigned)
 		hasher.combine(optional: userOwnerId)
@@ -428,6 +440,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		&& userModifiedId == other.userModifiedId
 		&& location == other.location
 		&& thirdPartyId == other.thirdPartyId
+		&& projectId == other.projectId
 		&& priority == other.priority
 		&& usersAssigned == other.usersAssigned
 		&& userOwnerId == other.userOwnerId
@@ -455,6 +468,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		try container.encodeIfPresentAndNotEmpty(userModifiedId, forKey: .userModifiedId)
 		try container.encodeIfPresent(location, forKey: .location)
 		try container.encodeIfPresent(thirdPartyId, forKey: .thirdPartyId)
+		try container.encodeIfPresent(projectId, forKey: .projectId)
 		try container.encodeIfPresentAndNotEmpty(priority, forKey: .priority)
 		try container.encodeIfPresent(usersAssigned, forKey: .usersAssigned)
 		try container.encodeIfPresentAndNotEmpty(userOwnerId, forKey: .userOwnerId)

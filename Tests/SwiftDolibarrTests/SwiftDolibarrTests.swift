@@ -620,6 +620,7 @@ private func makeContact() -> DolibarrContact {
     #expect(draft.pdfModel == "cornas")
     #expect(draft.dateCreation == 1770736891)
     #expect(draft.dateValidation == nil)
+    #expect(draft.projectId == nil)
     #expect(draft.dateApproval == nil)
     #expect(draft.dateOrder == nil)
     #expect(draft.deliveryDate == nil)
@@ -637,6 +638,7 @@ private func makeContact() -> DolibarrContact {
     #expect(validated.paymentMethodId == "2")
     #expect(validated.paymentTermsId == "2")
     #expect(validated.lastMainDoc == "fournisseur/commande/PO2610-0001/PO2610-0001.pdf")
+    #expect(validated.projectId == "1")
     #expect(validated.lines.count == 1)
 
     let line = validated.lines[0]
@@ -704,16 +706,19 @@ private func makeContact() -> DolibarrContact {
     #expect(order.billed == "1")
     #expect(order.orderMethodId == "5")
     #expect(order.orderMethod == "En ligne")
+    #expect(order.projectId == "1")
 
     let copy = DolibarrSupplierOrder(copying: order)
     #expect(copy.orderMethodId == "5")
     #expect(copy.orderMethod == "En ligne")
+    #expect(copy.projectId == "1")
 
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode(DolibarrSupplierOrder.self, from: encoder.encode(order))
     #expect(redecoded == order)
     #expect(redecoded.orderMethodId == "5")
     #expect(redecoded.orderMethod == "En ligne")
+    #expect(redecoded.projectId == "1")
 }
 
 /// `GET /setup/dictionary/ordering_methods` response (`rowid` as string or integer)
@@ -900,6 +905,7 @@ private func makeContact() -> DolibarrContact {
     #expect(order.ref == "CO2504-0001")
     #expect(order.thirdPartyId == "2")
     #expect(order.totalExclTax == "80.00000000")
+    #expect(order.projectId == nil)
     #expect(order.lines.count == 1)
 
     let line = order.lines[0]
@@ -1336,4 +1342,94 @@ private func makeInvoice() -> DolibarrInvoice {
     let secondDocument = try decoder.decode(DolibarrDocument.self, from: Data(second.utf8))
 
     #expect(firstDocument != secondDocument)
+}
+
+/// `fk_project` returned as a string or number, with `null`, missing, empty and zero values meaning no project
+@Test(arguments: [
+    (#""fk_project": "12","#, "12" as String?),
+    (#""fk_project": 12,"#, "12"),
+    (#""fk_project": null,"#, nil),
+    ("", nil),
+    (#""fk_project": "","#, nil),
+    (#""fk_project": "0","#, nil),
+    (#""fk_project": 0,"#, nil)
+])
+func decodeProjectId(field: String, expected: String?) async throws {
+    let json = """
+    { \(field) "id": "3", "label": "Main" }
+    """
+    let warehouse = try JSONDecoder().decode(DolibarrWarehouse.self, from: Data(json.utf8))
+
+    #expect(warehouse.projectId == expected)
+}
+
+@Test func commercialTransactionsPassProjectIdToSuperclass() async throws {
+    #expect(DolibarrQuote(projectId: "7").projectId == "7")
+    #expect(DolibarrOrder(projectId: "7").projectId == "7")
+    #expect(DolibarrInvoice(projectId: "7").projectId == "7")
+    #expect(DolibarrSupplierOrder(projectId: "7").projectId == "7")
+    #expect(DolibarrSupplierInvoice(projectId: "7").projectId == "7")
+}
+
+@Test func commercialTransactionProjectIdRoundTrip() async throws {
+    let order = DolibarrSupplierOrder(thirdPartyId: "2", ref: "PO2610-0001", projectId: "7", id: "1")
+    let data = try JSONEncoder().encode(order)
+    let encoded = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+    #expect(encoded["fk_project"] as? String == "7")
+    #expect(try JSONDecoder().decode(DolibarrSupplierOrder.self, from: data) == order)
+    #expect(DolibarrSupplierOrder(copying: order).projectId == "7")
+    #expect(order != DolibarrSupplierOrder(thirdPartyId: "2", ref: "PO2610-0001", projectId: "8", id: "1"))
+}
+
+@Test func agendaEventProjectIdRoundTrip() async throws {
+    let json = """
+    {
+        "id": "1", "ref": "1", "label": "Call", "percentage": "0", "fulldayevent": "0",
+        "datep": 1793228400, "datef": 1793232000, "fk_project": 7
+    }
+    """
+    let decoder = JSONDecoder()
+    let event = try decoder.decode(DolibarrAgendaEvent.self, from: Data(json.utf8))
+
+    #expect(event.projectId == "7")
+    #expect(DolibarrAgendaEvent(copying: event).projectId == "7")
+
+    let redecoded = try decoder.decode(DolibarrAgendaEvent.self, from: JSONEncoder().encode(event))
+    #expect(redecoded == event)
+
+    let other = DolibarrAgendaEvent(copying: event)
+    other.projectId = "8"
+    #expect(other != event)
+}
+
+@Test func warehouseProjectIdRoundTrip() async throws {
+    let warehouse = DolibarrWarehouse(label: "Main", projectId: "7", id: "3", statusCode: "1")
+    let redecoded = try JSONDecoder().decode(DolibarrWarehouse.self, from: JSONEncoder().encode(warehouse))
+
+    #expect(redecoded.projectId == "7")
+    #expect(redecoded == warehouse)
+    #expect(DolibarrWarehouse(copying: warehouse).projectId == "7")
+    #expect(warehouse != DolibarrWarehouse(label: "Main", projectId: "8", id: "3", statusCode: "1"))
+}
+
+@Test func interventionAndTaskDecodeNumericProjectId() async throws {
+    let interventionJson = """
+    { "id": "1", "socid": "2", "ref": "FI2504-0001", "lines": [], "fk_project": 7 }
+    """
+    let taskJson = """
+    { "id": "1", "ref": "TK1", "label": "Build", "fk_project": 7, "fk_task_parent": "0" }
+    """
+    let decoder = JSONDecoder()
+
+    #expect(try decoder.decode(DolibarrIntervention.self, from: Data(interventionJson.utf8)).projectId == "7")
+    #expect(try decoder.decode(DolibarrTask.self, from: Data(taskJson.utf8)).projectId == "7")
+}
+
+@Test func commercialTransactionsPassRefToSuperclass() async throws {
+    #expect(DolibarrQuote(ref: "PR2504-0001").ref == "PR2504-0001")
+    #expect(DolibarrOrder(ref: "CO2504-0001").ref == "CO2504-0001")
+    #expect(DolibarrInvoice(ref: "FA2504-0001").ref == "FA2504-0001")
+    #expect(DolibarrSupplierOrder(ref: "PO2610-0001").ref == "PO2610-0001")
+    #expect(DolibarrSupplierInvoice(ref: "SI2504-0001").ref == "SI2504-0001")
 }

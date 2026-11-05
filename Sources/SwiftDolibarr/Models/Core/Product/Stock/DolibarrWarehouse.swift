@@ -51,6 +51,7 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
 	// Optional
 
 	public var parentId: String?
+	public var projectId: String?
 	public var description: String?
 	public var location: String?
 	public var address: String?
@@ -71,6 +72,7 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
     enum CodingKeys: String, CodingKey {
 		case label
 		case parentId = "fk_parent"
+		case projectId = "fk_project"
         case description
         case location = "lieu"
         case address
@@ -85,6 +87,7 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
     public init(
 		label: String = "",
 		parentId: String? = nil,
+		projectId: String? = nil,
 		description: String? = nil,
 		location: String? = nil,
 		address: String? = nil,
@@ -100,6 +103,7 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
     ) {
 		self.label = label
 		self.parentId = parentId
+		self.projectId = projectId
         self.description = description
         self.location = location
         self.address = address
@@ -124,6 +128,7 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
             let container = try decoder.container(keyedBy: CodingKeys.self)
 			self.label = try container.decode(String.self, forKey: .label)
 			self.parentId = try container.decodeIfPresent(String.self, forKey: .parentId)
+			self.projectId = try container.decodeIdIfPresent(forKey: .projectId)
             self.description = try container.decodeIfPresent(String.self, forKey: .description)
             self.location = try container.decodeIfPresent(String.self, forKey: .location)
 			self.address = try container.decodeIfPresent(String.self, forKey: .address)
@@ -151,6 +156,7 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
     public init(copying source: DolibarrWarehouse) {
 		self.label = source.label
 		self.parentId = source.parentId
+		self.projectId = source.projectId
 		self.description = source.description
 		self.location = source.location
 		self.address = source.address
@@ -166,6 +172,7 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
     public func copy(_ source: DolibarrWarehouse) {
 		self.label = source.label
 		self.parentId = source.parentId
+		self.projectId = source.projectId
 		self.description = source.description
 		self.location = source.location
 		self.address = source.address
@@ -181,6 +188,7 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
     override public func hash(into hasher: inout Hasher) {
 		hasher.combine(label)
 		hasher.combine(optional: parentId)
+		hasher.combine(optional: projectId)
 		hasher.combine(optional: description)
 		hasher.combine(optional: location)
 		hasher.combine(optional: address)
@@ -195,6 +203,7 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
 		guard let other = other as? DolibarrWarehouse else { return false }
 		return label == other.label
 		&& parentId == other.parentId
+		&& projectId == other.projectId
 		&& description == other.description
 		&& location == other.location
 		&& address == other.address
@@ -209,6 +218,7 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
         var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encodeIfNotEmpty(label, forKey: .label)
 		try container.encodeIfPresent(parentId, forKey: .parentId)
+		try container.encodeIfPresent(projectId, forKey: .projectId)
 		try container.encodeIfPresent(location, forKey: .location)
 		try container.encodeIfPresent(description, forKey: .description)
 		try container.encodeIfPresent(address, forKey: .address)
