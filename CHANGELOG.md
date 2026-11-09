@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.68.0] - 2026-11-09
+
+### Added
+- Category type and color
+- Category copying with `init(copying:)` and `copy(_:)`
+
+### Changed
+- Categories decode a numeric or string parent ID and type, and a null or missing description
+- Categories always encode their description and color so they can be cleared, and never encode their type
+
 ## [0.67.0] - 2026-11-09
 
 ### Added
