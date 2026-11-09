@@ -51,7 +51,7 @@ Then add it to your target's dependencies:
 
 | Module | Models |
 |---|---|
-| **Third Parties** | `DolibarrThirdParty`, `DolibarrContact` |
+| **Third Parties** | `DolibarrThirdParty`, `DolibarrContact`, `DolibarrRepresentative` |
 | **Products & Stock** | `DolibarrProduct`, `DolibarrWarehouse`, `DolibarrStockMovement` |
 | **Quotes** | `DolibarrQuote`, `DolibarrQuoteLine` |
 | **Orders** | `DolibarrOrder`, `DolibarrOrderLine` |
@@ -63,13 +63,14 @@ Then add it to your target's dependencies:
 | **Projects & Tasks** | `DolibarrProject`, `DolibarrTask` |
 | **Agenda Events** | `DolibarrAgendaEvent` |
 | **Users** | `DolibarrUser`, `DolibarrUserPermissions` |
-| **Setup** | `DolibarrCountry`, `DolibarrExpenseReportType`, `DolibarrShippingMethod`, `DolibarrPaymentTerm` |
+| **Documents** | `DolibarrDocument`, `DolibarrDownloadedDocument` |
+| **Setup** | `DolibarrCountry`, `DolibarrExpenseReportType`, `DolibarrShippingMethod`, `DolibarrPaymentTerm`, `DolibarrOrderingMethod`, `DolibarrAvailability`, `DolibarrBusinessOrigin` |
 
 ### External
 
 | Publisher | Modules | Models |
 |---|---|---|
-| **CODE42** | LaReponse | `LaReponseArticle`, `LaReponseComment` |
+| **CODE42** | LaReponse | `LaReponseArticle`, `LaReponseComment`, `LaReponseArticleToken` |
 
 ## Usage
 
