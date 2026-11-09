@@ -1791,3 +1791,88 @@ private func makeContract() -> DolibarrContract {
     let redecoded = try decoder.decode(DolibarrUserPermissions.self, from: JSONEncoder().encode(permissions))
     #expect(redecoded == permissions)
 }
+
+/// `GET /setup/dictionary/availability` response (`rowid` as string or integer)
+@Test func decodeAvailabilities() async throws {
+    let json = """
+    [
+        { "rowid": "1", "code": "AV_1D", "label": "1 jour", "type_duration": "d", "qty": "1" },
+        { "rowid": 7, "code": "AV_2W", "label": "2 semaines", "type_duration": "w", "qty": "2" }
+    ]
+    """
+    let availabilities = try JSONDecoder().decode([DolibarrAvailability].self, from: Data(json.utf8))
+
+    #expect(availabilities.count == 2)
+    #expect(availabilities[0] == DolibarrAvailability(id: "1", code: "AV_1D", label: "1 jour"))
+    #expect(availabilities[1] == DolibarrAvailability(id: "7", code: "AV_2W", label: "2 semaines"))
+}
+
+/// `GET /setup/dictionary/ordering_origins` response (`rowid` as string or integer)
+@Test func decodeBusinessOrigins() async throws {
+    let json = """
+    [
+        { "rowid": "1", "code": "SRC_INTE", "label": "Site web" },
+        { "rowid": 5, "code": "SRC_COMM", "label": "Contact commercial" }
+    ]
+    """
+    let origins = try JSONDecoder().decode([DolibarrBusinessOrigin].self, from: Data(json.utf8))
+
+    #expect(origins.count == 2)
+    #expect(origins[0] == DolibarrBusinessOrigin(id: "1", code: "SRC_INTE", label: "Site web"))
+    #expect(origins[1] == DolibarrBusinessOrigin(id: "5", code: "SRC_COMM", label: "Contact commercial"))
+}
+
+/// `GET /thirdparties/{id}/representatives?mode=0` response (full user objects, null first name)
+@Test func decodeRepresentatives() async throws {
+    let json = """
+    [
+        { "id": "1", "login": "admin", "lastname": "Mead", "firstname": "William", "email": "admin@example.com" },
+        { "id": 2, "login": "sales", "lastname": "Sales", "firstname": null }
+    ]
+    """
+    let representatives = try JSONDecoder().decode([DolibarrRepresentative].self, from: Data(json.utf8))
+
+    #expect(representatives.count == 2)
+    #expect(representatives[0] == DolibarrRepresentative(id: "1", lastname: "Mead", firstname: "William"))
+    #expect(representatives[1] == DolibarrRepresentative(id: "2", lastname: "Sales", firstname: ""))
+}
+
+/// `GET /documents/download` response
+@Test func decodeDownloadedDocument() async throws {
+    let json = """
+    {
+        "filename": "PR2401-0001.pdf",
+        "content-type": "application/pdf",
+        "filesize": 5,
+        "content": "SGVsbG8=",
+        "encoding": "base64"
+    }
+    """
+    let document = try JSONDecoder().decode(DolibarrDownloadedDocument.self, from: Data(json.utf8))
+
+    #expect(document.filename == "PR2401-0001.pdf")
+    #expect(document.contentType == "application/pdf")
+    #expect(document.filesize == 5)
+    #expect(document.encoding == "base64")
+    #expect(document.data == Data("Hello".utf8))
+}
+
+/// `GET /documents/download` response missing the content type fails to decode
+@Test func decodeDownloadedDocumentMissingContentTypeFails() async throws {
+    let json = """
+    { "filename": "a.pdf", "filesize": 0, "content": "", "encoding": "base64" }
+    """
+    #expect(throws: DecodingError.self) {
+        try JSONDecoder().decode(DolibarrDownloadedDocument.self, from: Data(json.utf8))
+    }
+}
+
+/// `GET /lareponse/articles/{id}/token` response
+@Test func decodeLaReponseArticleToken() async throws {
+    let json = """
+    { "id": 12, "publish_token": "a1b2c3" }
+    """
+    let token = try JSONDecoder().decode(LaReponseArticleToken.self, from: Data(json.utf8))
+
+    #expect(token == LaReponseArticleToken(id: 12, publishToken: "a1b2c3"))
+}
