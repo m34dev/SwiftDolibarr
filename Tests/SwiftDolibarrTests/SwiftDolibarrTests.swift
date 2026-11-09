@@ -1007,6 +1007,73 @@ private func makeInvoice() -> DolibarrInvoice {
     #expect(DolibarrCategory(id: "4", label: "Clients") == category)
 }
 
+/// `GET /categories` returns `type` and `fk_parent` as numbers or numeric strings, and `description` or `color` may be null
+@Test func decodeCategories() async throws {
+    let json = """
+    [
+        {
+            "id": "4",
+            "fk_parent": 0,
+            "label": "Clothing",
+            "description": "All clothes",
+            "type": 0,
+            "color": "ff0000"
+        },
+        {
+            "id": "5",
+            "fk_parent": "4",
+            "label": "Women",
+            "description": null,
+            "type": "0",
+            "color": null
+        },
+        {
+            "id": "6",
+            "fk_parent": 0,
+            "label": "VIP"
+        }
+    ]
+    """
+    let categories = try JSONDecoder().decode([DolibarrCategory].self, from: Data(json.utf8))
+
+    #expect(categories.count == 3)
+    #expect(categories[0].parentId == 0)
+    #expect(categories[0].type == 0)
+    #expect(categories[0].color == "ff0000")
+    #expect(categories[0].description == "All clothes")
+    #expect(categories[1].parentId == 4)
+    #expect(categories[1].type == 0)
+    #expect(categories[1].description.isEmpty)
+    #expect(categories[1].color.isEmpty)
+    #expect(categories[2].type == nil)
+}
+
+@Test func encodeCategoryWithoutTypeAndWithClearableFields() async throws {
+    let category = DolibarrCategory(id: "5", parentId: 4, label: "Women", description: "", type: 2, color: "")
+    let data = try JSONEncoder().encode(category)
+    let body = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+    // Dolibarr ignores type changes on update, so it is never sent
+    #expect(body["type"] == nil)
+    #expect(body["fk_parent"] as? Int == 4)
+    #expect(body["label"] as? String == "Women")
+    // Empty values are sent so they can be cleared
+    #expect(body["description"] as? String == "")
+    #expect(body["color"] as? String == "")
+}
+
+@Test func copiedCategoryIsEqualUntilEdited() async throws {
+    let category = DolibarrCategory(id: "5", parentId: 4, label: "Women", description: "Clothes", type: 0, color: "00ff00")
+    let edited = DolibarrCategory(copying: category)
+
+    #expect(edited == category)
+    edited.color = "0000ff"
+    #expect(edited != category)
+    category.copy(edited)
+    #expect(category.color == "0000ff")
+    #expect(category.type == 0)
+}
+
 @Test func objectStatusesDifferingInDomainAreNotEqual() async throws {
     var status = DolibarrObjectStatus.draft
     status.domain = .warehouse
