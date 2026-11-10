@@ -2227,3 +2227,45 @@ private func makeContract() -> DolibarrContract {
 
     #expect(decoded == organization)
 }
+
+/// Live `GET /multicompany` response from Dolibarr 22.0.4 with Multicompany 22.0.0
+@Test func decodeLiveMulticompanyEntitiesV22() async throws {
+    let json = """
+    [
+     {"module":null,"id":"1","entity":[],"array_options":[],"country_id":"1","country_code":"FR","label":"dolitest22 1","description":"Entité maître, ne peut pas être supprimée","url":null,"currency_code":"EUR","language_code":"fr_FR","options":[],"options_json":null,"entities":[],"visible":"1","active":"1","currency":null},
+     {"module":null,"id":"2","entity":[],"array_options":[],"country_id":"1","country_code":"FR","state_id":"0","label":"dolitest22 2","description":"","url":null,"currency_code":"EUR","language_code":"fr_FR","options":[],"options_json":null,"entities":[],"visible":"1","active":"1","currency":null},
+     {"module":null,"id":"3","entity":[],"array_options":[],"country_id":"","country_code":"","state_id":"0","label":"dolitest22 3","description":"","url":null,"currency_code":"EUR","language_code":"auto","options":[],"options_json":null,"entities":[],"visible":"0","active":"1","currency":null}
+    ]
+    """
+    let entities = try JSONDecoder().decode([MulticompanyEntity].self, from: Data(json.utf8))
+
+    #expect(entities.count == 3)
+    #expect(entities.map(\.id) == ["1", "2", "3"])
+    #expect(entities[0].label == "dolitest22 1")
+    #expect(entities[0].description == "Entité maître, ne peut pas être supprimée")
+    #expect(entities[0].countryId == "1")
+    #expect(entities[0].countryCode == "FR")
+    #expect(entities[0].currencyCode == "EUR")
+    #expect(entities[0].visible == "1")
+    #expect(entities[0].active == "1")
+    #expect(entities[2].countryId == "")
+    #expect(entities[2].countryCode == "")
+    #expect(entities[2].visible == "0")
+    #expect(entities[2].active == "1")
+    #expect(entities.allSatisfy { $0.arrayOptions == nil })
+}
+
+/// Multicompany entities with null or missing optional fields must not break the list
+@Test func decodeMulticompanyEntitiesWithNullAndMissingFields() async throws {
+    let json = """
+    [
+     {"id":"1","label":"Null fields","description":null,"country_id":null,"country_code":null,"currency_code":null,"visible":null,"active":"1","array_options":[]},
+     {"id":4,"label":"Minimal"}
+    ]
+    """
+    let entities = try JSONDecoder().decode([MulticompanyEntity].self, from: Data(json.utf8))
+
+    #expect(entities.count == 2)
+    #expect(entities[0] == MulticompanyEntity(id: "1", label: "Null fields", active: "1"))
+    #expect(entities[1] == MulticompanyEntity(id: "4", label: "Minimal"))
+}

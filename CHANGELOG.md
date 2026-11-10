@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org) using the 
 ### Added
 - Dolibarr organization (`/setup/company`) with logo file helpers
 
+### Changed
+- Multicompany entities decode a null or missing description, country, currency, visible and active state
+
 ## [0.68.0] - 2026-11-09
 
 ### Added
