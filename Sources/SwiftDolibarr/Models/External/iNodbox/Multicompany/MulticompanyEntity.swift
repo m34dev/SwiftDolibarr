@@ -113,12 +113,12 @@ public final class MulticompanyEntity: Hashable, Codable, DolibarrObject {
 			let container = try decoder.container(keyedBy: CodingKeys.self)
 			self.id = try container.decode(MultiType.self, forKey: .id).stringValue
 			self.label = try container.decode(String.self, forKey: .label)
-			self.description = try container.decode(String.self, forKey: .description)
-			self.countryId = try container.decode(MultiType.self, forKey: .countryId).stringValue
-			self.countryCode = try container.decode(String.self, forKey: .countryCode)
-			self.currencyCode = try container.decode(String.self, forKey: .currencyCode)
-			self.visible = try container.decode(MultiType.self, forKey: .visible).stringValue
-			self.active = try container.decode(MultiType.self, forKey: .active).stringValue
+			self.description = try container.decodeIfPresent(String.self, forKey: .description) ?? ""
+			self.countryId = try container.decodeIfPresent(MultiType.self, forKey: .countryId)?.stringValue ?? ""
+			self.countryCode = try container.decodeIfPresent(String.self, forKey: .countryCode) ?? ""
+			self.currencyCode = try container.decodeIfPresent(String.self, forKey: .currencyCode) ?? ""
+			self.visible = try container.decodeIfPresent(MultiType.self, forKey: .visible)?.stringValue ?? ""
+			self.active = try container.decodeIfPresent(MultiType.self, forKey: .active)?.stringValue ?? ""
 			if let dictArrayOptions = try? container.decode([String: MultiType].self, forKey: .arrayOptions) {
 				self.arrayOptions = Dictionary(
 					uniqueKeysWithValues: dictArrayOptions.map { key, value in

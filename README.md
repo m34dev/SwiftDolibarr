@@ -64,7 +64,7 @@ Then add it to your target's dependencies:
 | **Agenda Events** | `DolibarrAgendaEvent` |
 | **Users** | `DolibarrUser`, `DolibarrUserPermissions` |
 | **Documents** | `DolibarrDocument`, `DolibarrDownloadedDocument` |
-| **Setup** | `DolibarrCountry`, `DolibarrExpenseReportType`, `DolibarrShippingMethod`, `DolibarrPaymentTerm`, `DolibarrOrderingMethod`, `DolibarrAvailability`, `DolibarrBusinessOrigin` |
+| **Setup** | `DolibarrCountry`, `DolibarrExpenseReportType`, `DolibarrShippingMethod`, `DolibarrPaymentTerm`, `DolibarrOrderingMethod`, `DolibarrAvailability`, `DolibarrBusinessOrigin`, `DolibarrOrganization` |
 
 ### External
 
