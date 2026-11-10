@@ -1943,3 +1943,287 @@ private func makeContract() -> DolibarrContract {
 
     #expect(token == LaReponseArticleToken(id: 12, publishToken: "a1b2c3"))
 }
+
+/// `GET /setup/company` response from Dolibarr 18 (no currency code, int IDs, empty values)
+@Test func decodeOrganizationV18() async throws {
+    let json = """
+    {
+        "module": "societe",
+        "id": 0,
+        "entity": 1,
+        "name": "Doli Test 18",
+        "address": "1 rue de la Paix",
+        "zip": "75002",
+        "town": "Paris",
+        "state_id": 12,
+        "state_code": "75",
+        "country_id": 1,
+        "country_code": "FR",
+        "phone": "",
+        "email": "contact@example.com",
+        "tva_intra": "FR12345678901",
+        "socialnetworks": [],
+        "logo": "logo.png",
+        "logo_small": "logo_small.png",
+        "logo_mini": "",
+        "logo_squarred": "",
+        "logo_squarred_small": "",
+        "logo_squarred_mini": ""
+    }
+    """
+    let organization = try JSONDecoder().decode(DolibarrOrganization.self, from: Data(json.utf8))
+
+    #expect(organization.name == "Doli Test 18")
+    #expect(organization.stateId == "12")
+    #expect(organization.countryId == "1")
+    #expect(organization.currencyCode == nil)
+    #expect(organization.phone == nil)
+    #expect(organization.vatNumber == "FR12345678901")
+    #expect(organization.logoMini == nil)
+    #expect(organization.preferredLogoOriginalFile == "logos/thumbs/logo_small.png")
+}
+
+/// `GET /setup/company` live response from Dolibarr 22 without a logo
+@Test func decodeOrganizationV22() async throws {
+    let json = """
+    {
+      "module": "societe",
+      "id": 0,
+      "entity": 1,
+      "import_key": null,
+      "array_options": [],
+      "array_languages": null,
+      "contacts_ids": null,
+      "contacts_ids_internal": null,
+      "linkedObjectsIds": null,
+      "canvas": null,
+      "fk_project": null,
+      "user": null,
+      "origin_type": null,
+      "origin_id": null,
+      "ref": null,
+      "ref_ext": null,
+      "statut": null,
+      "status": 1,
+      "country_id": 1,
+      "country_code": "FR",
+      "state_id": 0,
+      "region_id": null,
+      "barcode_type": null,
+      "barcode_type_coder": null,
+      "mode_reglement_id": null,
+      "cond_reglement_id": null,
+      "demand_reason_id": null,
+      "transport_mode_id": null,
+      "shipping_method_id": null,
+      "shipping_method": null,
+      "fk_multicurrency": null,
+      "multicurrency_code": null,
+      "multicurrency_tx": null,
+      "multicurrency_total_ht": null,
+      "multicurrency_total_tva": null,
+      "multicurrency_total_localtax1": null,
+      "multicurrency_total_localtax2": null,
+      "multicurrency_total_ttc": null,
+      "last_main_doc": null,
+      "fk_account": null,
+      "note_public": null,
+      "note_private": "",
+      "actiontypecode": null,
+      "name": "Doli Test 22 1",
+      "civility_code": null,
+      "date_creation": null,
+      "date_validation": null,
+      "date_modification": null,
+      "tms": null,
+      "date_cloture": null,
+      "user_author": null,
+      "user_creation": null,
+      "user_creation_id": null,
+      "user_valid": null,
+      "user_validation": null,
+      "user_validation_id": null,
+      "user_closing_id": null,
+      "user_modification": null,
+      "user_modification_id": null,
+      "fk_user_creat": null,
+      "fk_user_modif": null,
+      "specimen": 0,
+      "totalpaid": null,
+      "extraparams": [],
+      "product": null,
+      "deposit_percent": null,
+      "retained_warranty_fk_cond_reglement": null,
+      "warehouse_id": null,
+      "SupplierCategories": [],
+      "prefixCustomerIsRequired": null,
+      "name_alias": null,
+      "particulier": null,
+      "phone": "0665240151",
+      "phone_mobile": "",
+      "fax": "",
+      "email": "",
+      "no_email": null,
+      "skype": null,
+      "twitter": null,
+      "facebook": null,
+      "linkedin": null,
+      "url": "",
+      "barcode": null,
+      "idprof1": "",
+      "siren": null,
+      "idprof2": "",
+      "siret": null,
+      "idprof3": "",
+      "ape": null,
+      "idprof4": "",
+      "idprof5": "",
+      "idprof6": "",
+      "idprof7": "",
+      "idprof8": "",
+      "idprof9": "",
+      "idprof10": "",
+      "socialobject": "",
+      "tva_assuj": 1,
+      "tva_intra": "",
+      "vat_reverse_charge": 0,
+      "localtax1_assuj": 0,
+      "localtax1_value": null,
+      "localtax2_assuj": 0,
+      "localtax2_value": null,
+      "managers": "",
+      "capital": 0,
+      "typent_id": 0,
+      "typent_code": null,
+      "remise_percent": null,
+      "remise_supplier_percent": null,
+      "code_client": null,
+      "code_fournisseur": null,
+      "code_compta_client": null,
+      "accountancy_code_customer_general": null,
+      "accountancy_code_customer": null,
+      "code_compta_fournisseur": null,
+      "accountancy_code_supplier_general": null,
+      "accountancy_code_supplier": null,
+      "code_compta_product": null,
+      "stcomm_id": null,
+      "stcomm_picto": null,
+      "status_prospect_label": null,
+      "price_level": null,
+      "outstanding_limit": null,
+      "order_min_amount": null,
+      "supplier_order_min_amount": null,
+      "commercial_id": null,
+      "parent": null,
+      "default_lang": "fr_FR",
+      "ip": null,
+      "webservices_url": null,
+      "webservices_key": null,
+      "logo": "",
+      "logo_small": "",
+      "logo_mini": "",
+      "logo_squarred": "",
+      "logo_squarred_small": "",
+      "logo_squarred_mini": "",
+      "accountancy_code_sell": null,
+      "accountancy_code_buy": null,
+      "currency_code": "EUR",
+      "fk_warehouse": null,
+      "termsofsale": "",
+      "partnerships": [],
+      "bank_account": null,
+      "code_compta": null,
+      "socialnetworks": [],
+      "address": "",
+      "zip": "",
+      "town": ""
+    }
+    """
+    let organization = try JSONDecoder().decode(DolibarrOrganization.self, from: Data(json.utf8))
+
+    #expect(organization.name == "Doli Test 22 1")
+    #expect(organization.countryId == "1")
+    #expect(organization.countryCode == "FR")
+    #expect(organization.stateId == nil)
+    #expect(organization.currencyCode == "EUR")
+    #expect(organization.defaultLanguage == "fr_FR")
+    #expect(organization.phone == "0665240151")
+    #expect(organization.phoneMobile == nil)
+    #expect(organization.email == nil)
+    #expect(organization.address == nil)
+    for variant in DolibarrOrganization.LogoVariant.allCases {
+        #expect(organization.logoOriginalFile(variant) == nil)
+    }
+    #expect(organization.preferredLogoOriginalFile == nil)
+}
+
+/// `GET /setup/company` response with string IDs and logos
+@Test func decodeOrganizationWithLogo() async throws {
+    let json = """
+    {
+        "name": "M34D",
+        "country_id": "1",
+        "state_id": "0",
+        "currency_code": "EUR",
+        "logo": "mylogo.png",
+        "logo_small": "mylogo_small.png",
+        "logo_mini": "mylogo_mini.png",
+        "logo_squarred": "mysquare.png",
+        "logo_squarred_small": "mysquare_small.png",
+        "logo_squarred_mini": "mysquare_mini.png"
+    }
+    """
+    let organization = try JSONDecoder().decode(DolibarrOrganization.self, from: Data(json.utf8))
+
+    #expect(organization.countryId == "1")
+    #expect(organization.stateId == nil)
+    #expect(organization.logo == "mylogo.png")
+    #expect(organization.logoSmall == "mylogo_small.png")
+    #expect(organization.logoSquarredMini == "mysquare_mini.png")
+}
+
+/// Organization logo original files and preferred logo order
+@Test func organizationLogoOriginalFile() async throws {
+    let organization = DolibarrOrganization(
+        name: "M34D",
+        logo: "a.png",
+        logoSmall: "a_small.png",
+        logoMini: "a_mini.png",
+        logoSquarred: "s.png",
+        logoSquarredSmall: "s_small.png",
+        logoSquarredMini: "s_mini.png"
+    )
+
+    #expect(DolibarrOrganization.documentModulePart == "mycompany")
+    #expect(organization.logoOriginalFile(.main) == "logos/a.png")
+    #expect(organization.logoOriginalFile(.small) == "logos/thumbs/a_small.png")
+    #expect(organization.logoOriginalFile(.mini) == "logos/thumbs/a_mini.png")
+    #expect(organization.logoOriginalFile(.squarred) == "logos/s.png")
+    #expect(organization.logoOriginalFile(.squarredSmall) == "logos/thumbs/s_small.png")
+    #expect(organization.logoOriginalFile(.squarredMini) == "logos/thumbs/s_mini.png")
+    #expect(organization.preferredLogoOriginalFile == "logos/thumbs/a_small.png")
+
+    #expect(DolibarrOrganization(logo: "a.png", logoSquarredSmall: "s_small.png").preferredLogoOriginalFile == "logos/a.png")
+    #expect(DolibarrOrganization(logoSquarred: "s.png", logoSquarredSmall: "s_small.png").preferredLogoOriginalFile == "logos/thumbs/s_small.png")
+    #expect(DolibarrOrganization(logoSquarred: "s.png").preferredLogoOriginalFile == "logos/s.png")
+    #expect(DolibarrOrganization(logo: "").logoOriginalFile(.main) == nil)
+    #expect(DolibarrOrganization().preferredLogoOriginalFile == nil)
+}
+
+/// Organization encodes and decodes to an equal value, for caching
+@Test func organizationRoundTrip() async throws {
+    let organization = DolibarrOrganization(
+        name: "M34D",
+        town: "Paris",
+        stateId: "12",
+        countryId: "1",
+        countryCode: "FR",
+        currencyCode: "EUR",
+        logo: "mylogo.png",
+        logoSmall: "mylogo_small.png"
+    )
+    let data = try JSONEncoder().encode(organization)
+    let decoded = try JSONDecoder().decode(DolibarrOrganization.self, from: data)
+
+    #expect(decoded == organization)
+}

@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.69.0] - 2026-11-10
+
+### Added
+- Dolibarr organization (`/setup/company`) with logo file helpers
+
 ## [0.68.0] - 2026-11-09
 
 ### Added
