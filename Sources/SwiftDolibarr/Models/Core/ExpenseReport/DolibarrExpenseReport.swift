@@ -158,6 +158,16 @@ public final class DolibarrExpenseReport: CommonBusinessObject {
 
 	// Computed
 
+	/// ID of the user who created the expense report
+	override public var createdByUserId: String? {
+		super.createdByUserId ?? Self.userId(userCreateId)
+	}
+
+	/// ID of the user who last modified the expense report
+	override public var modifiedByUserId: String? {
+		super.modifiedByUserId ?? Self.userId(userModifyId)
+	}
+
 	/// Expense report start date
 	public var dateStarted: Date {
 		Date(timeIntervalSince1970: TimeInterval(dateStart))
@@ -169,21 +179,18 @@ public final class DolibarrExpenseReport: CommonBusinessObject {
 	}
 
 	/// Expense report creation date
-	public var dateCreated: Date? {
-		guard let dateCreate else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateCreate))
+	override public var dateCreated: Date? {
+		Self.date(from: dateCreate) ?? super.dateCreated
 	}
 
 	/// Expense report modification date
-	public var dateModified: Date? {
-		guard let dateModify else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateModify))
+	override public var dateModified: Date? {
+		Self.date(from: dateModify) ?? super.dateModified
 	}
 
 	/// Expense report validation date
-	public var dateValidated: Date? {
-		guard let dateValidate else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateValidate))
+	override public var dateValidated: Date? {
+		Self.date(from: dateValidate) ?? super.dateValidated
 	}
 
 	/// Expense report approval date

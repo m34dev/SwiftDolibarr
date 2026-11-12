@@ -140,6 +140,16 @@ public final class DolibarrIntervention: CommonBusinessObject {
 
 	// Computed
 
+	/// ID of the user who created the intervention
+	override public var createdByUserId: String? {
+		super.createdByUserId ?? Self.userId(userCreateId)
+	}
+
+	/// ID of the user who last modified the intervention
+	override public var modifiedByUserId: String? {
+		super.modifiedByUserId ?? Self.userId(userModifyId)
+	}
+
 	/// Associated intervention status type
 	override public var status: DolibarrObjectStatus {
 		guard let status = DolibarrObjectStatus.interventions.first(where: { $0.code == statusCode }) else { return .unknown }
@@ -147,21 +157,18 @@ public final class DolibarrIntervention: CommonBusinessObject {
 	}
 
 	/// Intervention creation date
-	public var dateCreated: Date? {
-		guard let dateCreate else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateCreate))
+	override public var dateCreated: Date? {
+		Self.date(from: dateCreate) ?? super.dateCreated
 	}
 
 	/// Intervention modification date
-	public var dateModified: Date? {
-		guard let dateModify else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateModify))
+	override public var dateModified: Date? {
+		Self.date(from: dateModify) ?? super.dateModified
 	}
 
 	/// Intervention validation date
-	public var dateValidated: Date? {
-		guard let dateValidate else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateValidate))
+	override public var dateValidated: Date? {
+		Self.date(from: dateValidate) ?? super.dateValidated
 	}
     
     /// Intervention validation date

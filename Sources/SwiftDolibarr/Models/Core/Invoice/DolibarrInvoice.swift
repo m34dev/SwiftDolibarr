@@ -119,15 +119,19 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
 
 	// Computed
 
+	/// ID of the user who created the invoice
+	override public var createdByUserId: String? {
+		super.createdByUserId ?? Self.userId(userAuthorId)
+	}
+
 	/// Invoice date
 	public var dateInvoiced: Date {
 		Date(timeIntervalSince1970: TimeInterval(date))
 	}
 
 	/// Invoice validation date
-	public var dateValidated: Date? {
-		guard let dateValidation else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateValidation))
+	override public var dateValidated: Date? {
+		Self.date(from: dateValidation) ?? super.dateValidated
 	}
 
 	/// Associated invoice status type

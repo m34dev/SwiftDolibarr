@@ -151,16 +151,24 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 
 	// Computed
 
+	/// ID of the user who created the agenda event
+	override public var createdByUserId: String? {
+		super.createdByUserId ?? Self.userId(userAuthorId)
+	}
+
+	/// ID of the user who last modified the agenda event
+	override public var modifiedByUserId: String? {
+		super.modifiedByUserId ?? Self.userId(userModifiedId)
+	}
+
 	/// Agenda event creation date
-	public var dateCreated: Date? {
-		guard let dateCreate else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateCreate))
+	override public var dateCreated: Date? {
+		Self.date(from: dateCreate) ?? super.dateCreated
 	}
 
 	/// Agenda event modification date
-	public var dateModified: Date? {
-		guard let dateModify else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateModify))
+	override public var dateModified: Date? {
+		Self.date(from: dateModify) ?? super.dateModified
 	}
 
 	/// Agenda event start date

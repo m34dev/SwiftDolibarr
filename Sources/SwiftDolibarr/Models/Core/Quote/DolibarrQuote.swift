@@ -123,15 +123,21 @@ public final class DolibarrQuote: CommonCommercialTransactionObject {
 
 	// Computed
 
-	/// Quote creation date
-	public var dateCreated: Date {
+	/// ID of the user who created the quote
+	override public var createdByUserId: String? {
+		super.createdByUserId ?? Self.userId(userAuthorId)
+	}
+
+	/// Quote date
+	///
+	/// - Note: Renamed from `dateCreated`, which now holds the record creation date (`date_creation`).
+	public var dateQuoted: Date {
 		Date(timeIntervalSince1970: TimeInterval(dateP))
 	}
 
 	/// Quote validation date
-	public var dateValidated: Date? {
-		guard let dateV else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateV))
+	override public var dateValidated: Date? {
+		Self.date(from: dateV) ?? super.dateValidated
 	}
 
 	/// Quote validity end date
