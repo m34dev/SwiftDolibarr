@@ -2269,3 +2269,79 @@ private func makeContract() -> DolibarrContract {
     #expect(entities[0] == MulticompanyEntity(id: "1", label: "Null fields", active: "1"))
     #expect(entities[1] == MulticompanyEntity(id: "4", label: "Minimal"))
 }
+
+/// Live `GET /multicompany` response from Dolibarr 18 with Multicompany 18.0.7
+@Test func decodeLiveMulticompanyEntitiesV18() async throws {
+    let json = """
+    [
+      {
+        "id": "1",
+        "label": "Master entity",
+        "description": "Master entity, can not be deleted",
+        "currency_code": "EUR",
+        "language_code": "en_US",
+        "options": [],
+        "options_json": null,
+        "entity": [],
+        "entities": [],
+        "visible": "1",
+        "active": "1",
+        "currency": null,
+        "module": null,
+        "array_options": [],
+        "array_languages": null,
+        "contacts_ids": null,
+        "linked_objects": null,
+        "oldref": null,
+        "status": null,
+        "country_id": "1",
+        "country_code": "FR",
+        "region_id": null,
+        "demand_reason_id": null,
+        "transport_mode_id": null,
+        "shipping_method": null,
+        "multicurrency_code": null,
+        "multicurrency_tx": null,
+        "model_pdf": null,
+        "last_main_doc": null,
+        "fk_bank": null,
+        "lines": null,
+        "date_creation": null,
+        "date_validation": null,
+        "date_modification": null,
+        "date_update": null,
+        "date_cloture": null,
+        "user_author": null,
+        "user_creation": null,
+        "user_creation_id": null,
+        "user_valid": null,
+        "user_validation": null,
+        "user_validation_id": null,
+        "user_closing_id": null,
+        "user_modification": null,
+        "user_modification_id": null,
+        "fk_user_creat": null,
+        "fk_user_modif": null,
+        "specimen": 0,
+        "labelStatus": null,
+        "showphoto_on_popup": null,
+        "nb": [],
+        "output": null,
+        "extraparams": []
+      }
+    ]
+    """
+    let entities = try JSONDecoder().decode([MulticompanyEntity].self, from: Data(json.utf8))
+
+    #expect(entities.count == 1)
+    #expect(entities[0] == MulticompanyEntity(
+        id: "1",
+        label: "Master entity",
+        description: "Master entity, can not be deleted",
+        countryId: "1",
+        countryCode: "FR",
+        currencyCode: "EUR",
+        visible: "1",
+        active: "1"
+    ))
+}
