@@ -123,6 +123,16 @@ public final class DolibarrProject: CommonBusinessObject {
 
 	// Computed
 
+	/// Budget amount as a number, `0` when missing or unparsable
+	public var budgetAmountValue: Double {
+		Double(budgetAmount ?? "") ?? 0
+	}
+
+	/// Lead (opportunity) amount as a number, `0` when missing or unparsable
+	public var leadAmountValue: Double {
+		Double(leadAmount ?? "") ?? 0
+	}
+
 	/// Project start date
 	public var dateStarted: Date? {
 		guard let dateStart else { return nil }

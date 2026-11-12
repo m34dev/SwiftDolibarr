@@ -96,6 +96,28 @@ public final class DolibarrProductSupplierPrice: Hashable, Codable, DolibarrObje
 	/// - Mapped Dolibarr property: **fk_availability**
 	public var supplierProductAvailability: String
 	
+	// Computed
+
+	/// Supplier price as a number, `0` when the value can't be parsed
+	public var supplierPriceValue: Double {
+		Double(supplierPrice) ?? 0
+	}
+
+	/// Supplier unit price as a number, `0` when the value can't be parsed
+	public var supplierUnitPriceValue: Double {
+		Double(supplierUnitPrice) ?? 0
+	}
+
+	/// Supplier discount rate as a fraction (e.g. `0.1` for 10 %)
+	public var supplierDiscountFraction: Double {
+		(Double(supplierDiscountRate) ?? 0) / 100
+	}
+
+	/// Supplier tax rate as a fraction (e.g. `0.2` for 20 %)
+	public var supplierTaxFraction: Double {
+		(Double(supplierTaxRate) ?? 0) / 100
+	}
+
 	// MARK: - Enums
 
 	enum CodingKeys: String, CodingKey {
