@@ -123,6 +123,42 @@ public final class DolibarrProject: CommonBusinessObject {
 
 	// Computed
 
+	/// Project start date
+	public var dateStarted: Date? {
+		guard let dateStart else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateStart))
+	}
+
+	/// Project end date
+	public var dateEnded: Date? {
+		guard let dateEnd else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateEnd))
+	}
+
+	/// Project event start date
+	public var dateEventStarted: Date? {
+		guard let dateStartEvent else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateStartEvent))
+	}
+
+	/// Project event end date
+	public var dateEventEnded: Date? {
+		guard let dateEndEvent else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateEndEvent))
+	}
+
+	/// Whether the project tracks leads (opportunities)
+	public var usesLeads: Bool { usageLead == 1 }
+
+	/// Whether the project manages tasks
+	public var usesTasks: Bool { usageTask == 1 }
+
+	/// Whether the project bills time spent
+	public var usesBillTime: Bool { usageBillTime == 1 }
+
+	/// Whether the project organizes events
+	public var usesEventOrganization: Bool { usageOrganizeEvent == 1 }
+
 	/// Associated project status type
 	override public var status: DolibarrObjectStatus {
 		guard let status = DolibarrObjectStatus.projects.first(where: { $0.code == statusCode }) else { return .unknown }

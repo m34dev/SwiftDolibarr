@@ -111,6 +111,21 @@ public class CommonCommercialTransactionObject: CommonBusinessObject, DolibarrCo
 		return linkedObjectsIds?["contrat"]
 	}
 
+	/// Total amount excluding tax as a number, `0` when the value can't be parsed
+	public var totalExclTaxValue: Double {
+		Double(totalExclTax) ?? 0
+	}
+
+	/// Total tax amount as a number, `0` when the value can't be parsed
+	public var totalTaxValue: Double {
+		Double(totalTax) ?? 0
+	}
+
+	/// Total amount including tax as a number, `0` when the value can't be parsed
+	public var totalInclTaxValue: Double {
+		Double(totalInclTax) ?? 0
+	}
+
 	// MARK: - Enums
 
 	enum CodingKeys: String, CodingKey {

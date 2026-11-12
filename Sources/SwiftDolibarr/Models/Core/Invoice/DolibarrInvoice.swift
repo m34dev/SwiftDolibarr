@@ -119,6 +119,17 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
 
 	// Computed
 
+	/// Invoice date
+	public var dateInvoiced: Date {
+		Date(timeIntervalSince1970: TimeInterval(date))
+	}
+
+	/// Invoice validation date
+	public var dateValidated: Date? {
+		guard let dateValidation else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateValidation))
+	}
+
 	/// Associated invoice status type
 	override public var status: DolibarrObjectStatus {
 		guard let status = DolibarrObjectStatus.invoices.first(where: { $0.code == statusCode }) else { return .unknown }

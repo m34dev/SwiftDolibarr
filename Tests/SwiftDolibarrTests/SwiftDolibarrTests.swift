@@ -2345,3 +2345,65 @@ private func makeContract() -> DolibarrContract {
         active: "1"
     ))
 }
+
+// MARK: - Computed value properties
+
+@Test func commercialTransactionTotalValuesParseStrings() async throws {
+	let order = DolibarrOrder(totalExclTax: "1000.50000000", totalTax: "200.1", totalInclTax: "1200.60")
+	#expect(order.totalExclTaxValue == 1000.5)
+	#expect(order.totalTaxValue == 200.1)
+	#expect(order.totalInclTaxValue == 1200.6)
+}
+
+@Test func commercialTransactionTotalValuesDefaultToZero() async throws {
+	let order = DolibarrOrder(totalExclTax: "", totalTax: "abc", totalInclTax: "")
+	#expect(order.totalExclTaxValue == 0)
+	#expect(order.totalTaxValue == 0)
+	#expect(order.totalInclTaxValue == 0)
+}
+
+@Test func commercialTransactionLineValues() async throws {
+	let line = DolibarrOrderLine(
+		taxRate: "20.000",
+		unitPriceExclTax: "50.00000000",
+		discountRate: "10",
+		totalExclTax: "90.00",
+		totalInclTax: "108.00",
+		totalTax: "18.00",
+		quantity: "2"
+	)
+	#expect(line.unitPriceExclTaxValue == 50)
+	#expect(line.taxRateFraction == 0.2)
+	#expect(abs(line.unitPriceInclTaxValue - 60) < 0.000001)
+	#expect(line.discountFraction == 0.1)
+	#expect(line.quantityValue == 2)
+	#expect(line.totalExclTaxValue == 90)
+	#expect(line.totalTaxValue == 18)
+	#expect(line.totalInclTaxValue == 108)
+}
+
+@Test func commercialTransactionLineValuesDefaultToZero() async throws {
+	let line = DolibarrOrderLine(taxRate: "", unitPriceExclTax: "", discountRate: "", quantity: nil)
+	#expect(line.unitPriceExclTaxValue == 0)
+	#expect(line.unitPriceInclTaxValue == 0)
+	#expect(line.taxRateFraction == 0)
+	#expect(line.discountFraction == 0)
+	#expect(line.quantityValue == 0)
+}
+
+@Test func orderDatesConvertTimestamps() async throws {
+	let order = DolibarrOrder(dateCreation: 1700000000, dateOrder: nil, dateValidation: 1700000100, deliveryDate: 1700100000)
+	#expect(order.dateCreated == Date(timeIntervalSince1970: 1700000000))
+	#expect(order.dateOrdered == nil)
+	#expect(order.dateValidated == Date(timeIntervalSince1970: 1700000100))
+	#expect(order.dateDelivery == Date(timeIntervalSince1970: 1700100000))
+}
+
+@Test func projectUsageFlagsAndDates() async throws {
+	let project = DolibarrProject(usageLead: 1, usageTask: 0, usageBillTime: 1, usageOrganizeEvent: 0)
+	#expect(project.usesLeads)
+	#expect(!project.usesTasks)
+	#expect(project.usesBillTime)
+	#expect(!project.usesEventOrganization)
+	#expect(project.dateStarted == nil)
+}

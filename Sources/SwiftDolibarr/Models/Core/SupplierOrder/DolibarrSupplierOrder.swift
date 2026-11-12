@@ -139,6 +139,36 @@ public final class DolibarrSupplierOrder: CommonCommercialTransactionObject {
 
 	// Computed
 
+	/// Supplier order creation date
+	public var dateCreated: Date? {
+		guard let dateCreation else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateCreation))
+	}
+
+	/// Supplier order date
+	public var dateOrdered: Date? {
+		guard let dateOrder else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateOrder))
+	}
+
+	/// Supplier order validation date
+	public var dateValidated: Date? {
+		guard let dateValidation else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateValidation))
+	}
+
+	/// Supplier order approval date
+	public var dateApproved: Date? {
+		guard let dateApproval else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateApproval))
+	}
+
+	/// Supplier order planned delivery date
+	public var dateDelivery: Date? {
+		guard let deliveryDate else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(deliveryDate))
+	}
+
 	/// Associated supplier order status type
 	override public var status: DolibarrObjectStatus {
 		guard let status = DolibarrObjectStatus.supplierOrders.first(where: { $0.code == statusCode }) else { return .unknown }

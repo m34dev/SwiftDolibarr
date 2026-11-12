@@ -120,6 +120,29 @@ public final class DolibarrSupplierInvoice: CommonCommercialTransactionObject {
 
 	// Computed
 
+	/// Supplier invoice date
+	public var dateInvoiced: Date {
+		Date(timeIntervalSince1970: TimeInterval(date))
+	}
+
+	/// Supplier invoice creation date
+	public var dateCreated: Date? {
+		guard let dateCreation else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateCreation))
+	}
+
+	/// Supplier invoice validation date
+	public var dateValidated: Date? {
+		guard let dateValidation else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateValidation))
+	}
+
+	/// Supplier invoice due date
+	public var dateDue: Date? {
+		guard let dueDate else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dueDate))
+	}
+
 	/// Associated supplier invoice status type
 	override public var status: DolibarrObjectStatus {
 		guard let status = DolibarrObjectStatus.supplierInvoices.first(where: { $0.code == statusCode }) else { return .unknown }

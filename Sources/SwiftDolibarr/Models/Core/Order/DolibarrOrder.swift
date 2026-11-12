@@ -123,6 +123,30 @@ public final class DolibarrOrder: CommonCommercialTransactionObject {
 
 	// Computed
 
+	/// Order creation date
+	public var dateCreated: Date? {
+		guard let dateCreation else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateCreation))
+	}
+
+	/// Order date
+	public var dateOrdered: Date? {
+		guard let dateOrder else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateOrder))
+	}
+
+	/// Order validation date
+	public var dateValidated: Date? {
+		guard let dateValidation else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateValidation))
+	}
+
+	/// Order planned delivery date
+	public var dateDelivery: Date? {
+		guard let deliveryDate else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(deliveryDate))
+	}
+
 	/// Associated order status type
 	override public var status: DolibarrObjectStatus {
 		guard let status = DolibarrObjectStatus.orders.first(where: { $0.code == statusCode }) else { return .unknown }
