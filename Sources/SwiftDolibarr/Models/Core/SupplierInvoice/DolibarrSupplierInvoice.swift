@@ -120,21 +120,24 @@ public final class DolibarrSupplierInvoice: CommonCommercialTransactionObject {
 
 	// Computed
 
+	/// ID of the user who created the supplier invoice
+	override public var createdByUserId: String? {
+		super.createdByUserId ?? Self.userId(userAuthorId)
+	}
+
 	/// Supplier invoice date
 	public var dateInvoiced: Date {
 		Date(timeIntervalSince1970: TimeInterval(date))
 	}
 
 	/// Supplier invoice creation date
-	public var dateCreated: Date? {
-		guard let dateCreation else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateCreation))
+	override public var dateCreated: Date? {
+		Self.date(from: dateCreation) ?? super.dateCreated
 	}
 
 	/// Supplier invoice validation date
-	public var dateValidated: Date? {
-		guard let dateValidation else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateValidation))
+	override public var dateValidated: Date? {
+		Self.date(from: dateValidation) ?? super.dateValidated
 	}
 
 	/// Supplier invoice due date

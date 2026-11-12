@@ -216,6 +216,11 @@ import Testing
     #expect(order.userAuthorId == "1")
     #expect(order.userApproveId == "1")
     #expect(order.userApproveId2 == nil)
+    #expect(order.dateCreated == Date(timeIntervalSince1970: 1749822336))
+    #expect(order.dateValidated == Date(timeIntervalSince1970: 1749823249))
+    #expect(order.dateModified == nil)
+    #expect(order.createdByUserId == "1")
+    #expect(order.validatedByUserId == "1")
     #expect(order.lastMainDoc == "fournisseur/commande/PO2506-0001/PO2506-0001.pdf")
     #expect(order.lines.count == 1)
     #expect(order.lines[0].supplierOrderId == "1")
@@ -316,6 +321,12 @@ import Testing
     #expect(invoice.dateValidation == nil)
     #expect(invoice.dueDate == 1793142000)
     #expect(invoice.userAuthorId == "1")
+    #expect(invoice.creationTimestamp == 1793176726)
+    #expect(invoice.dateCreated == Date(timeIntervalSince1970: 1793176726))
+    #expect(invoice.dateModified == Date(timeIntervalSince1970: 1793176730))
+    #expect(invoice.dateValidated == nil)
+    #expect(invoice.createdByUserId == "1")
+    #expect(invoice.validatedByUserId == "1")
     #expect(invoice.paymentMethodId == "2")
     #expect(invoice.paymentTermsId == "7")
     #expect(invoice.lastMainDoc == nil)
@@ -905,6 +916,12 @@ private func makeContact() -> DolibarrContact {
     #expect(order.ref == "CO2504-0001")
     #expect(order.thirdPartyId == "2")
     #expect(order.totalExclTax == "80.00000000")
+    #expect(order.dateCreated == Date(timeIntervalSince1970: 1743773588))
+    #expect(order.dateValidated == Date(timeIntervalSince1970: 1743773595))
+    #expect(order.dateModified == Date(timeIntervalSince1970: 1773132910))
+    #expect(order.createdByUserId == "3")
+    #expect(order.validatedByUserId == "3")
+    #expect(order.modifiedByUserId == "5")
     #expect(order.projectId == nil)
     #expect(order.lines.count == 1)
 
@@ -2451,3 +2468,114 @@ private func makeContract() -> DolibarrContract {
 	#expect(!emptyTask.isBillable)
 	#expect(emptyTask.plannedWorkloadDuration == nil)
 }
+
+// MARK: - Audit fields
+
+@Test func decodeAuditFieldsFromStandardKeys() async throws {
+	let json = """
+	{
+		"id": "1",
+		"date_creation": 1700000000,
+		"datec": 1600000000,
+		"date_modification": "1700000100",
+		"tms": 1600000100,
+		"date_validation": 1700000200,
+		"user_creation_id": "3",
+		"user_author_id": "9",
+		"user_modification_id": 5,
+		"user_validation_id": "4"
+	}
+	"""
+	let object = try JSONDecoder().decode(CommonBusinessObject.self, from: Data(json.utf8))
+	#expect(object.dateCreated == Date(timeIntervalSince1970: 1700000000))
+	#expect(object.dateModified == Date(timeIntervalSince1970: 1700000100))
+	#expect(object.dateValidated == Date(timeIntervalSince1970: 1700000200))
+	#expect(object.createdByUserId == "3")
+	#expect(object.modifiedByUserId == "5")
+	#expect(object.validatedByUserId == "4")
+}
+
+@Test func decodeAuditFieldsFromLegacyKeys() async throws {
+	let json = """
+	{
+		"id": "1",
+		"date_creation": null,
+		"datec": 1600000000,
+		"date_modification": "",
+		"tms": 1600000100,
+		"date_validation": null,
+		"date_valid": "1600000200",
+		"user_creation_id": null,
+		"user_author_id": "",
+		"fk_user_author": "0",
+		"fk_user_creat": "7",
+		"fk_user_modif": "8",
+		"user_validation_id": null,
+		"fk_user_valid": 6
+	}
+	"""
+	let object = try JSONDecoder().decode(CommonBusinessObject.self, from: Data(json.utf8))
+	#expect(object.dateCreated == Date(timeIntervalSince1970: 1600000000))
+	#expect(object.dateModified == Date(timeIntervalSince1970: 1600000100))
+	#expect(object.dateValidated == Date(timeIntervalSince1970: 1600000200))
+	#expect(object.createdByUserId == "7")
+	#expect(object.modifiedByUserId == "8")
+	#expect(object.validatedByUserId == "6")
+}
+
+@Test func decodeAuditFieldsFromProjectKeys() async throws {
+	let json = """
+	{ "id": "1", "date_c": 1600000000, "date_m": 1600000100, "tms": 1500000000 }
+	"""
+	let object = try JSONDecoder().decode(CommonBusinessObject.self, from: Data(json.utf8))
+	#expect(object.dateCreated == Date(timeIntervalSince1970: 1600000000))
+	#expect(object.dateModified == Date(timeIntervalSince1970: 1600000100))
+}
+
+@Test func decodeAuditFieldsWhenMissingNullOrMalformed() async throws {
+	let json = """
+	{
+		"id": "1",
+		"date_creation": 0,
+		"date_modification": null,
+		"date_validation": "",
+		"user_creation_id": "0",
+		"user_modification_id": "",
+		"user_valid": { "id": "1" },
+		"user_validation_id": null
+	}
+	"""
+	let object = try JSONDecoder().decode(CommonBusinessObject.self, from: Data(json.utf8))
+	#expect(object.dateCreated == nil)
+	#expect(object.dateModified == nil)
+	#expect(object.dateValidated == nil)
+	#expect(object.createdByUserId == nil)
+	#expect(object.modifiedByUserId == nil)
+	#expect(object.validatedByUserId == nil)
+}
+
+@Test func auditFieldsAreNotEncodedNorCompared() async throws {
+	let json = """
+	{ "id": "1", "date_creation": 1700000000, "user_creation_id": "3", "tms": 1700000100 }
+	"""
+	let object = try JSONDecoder().decode(CommonBusinessObject.self, from: Data(json.utf8))
+	let encoded = try #require(String(data: JSONEncoder().encode(object), encoding: .utf8))
+	#expect(!encoded.contains("date_creation"))
+	#expect(!encoded.contains("user_creation_id"))
+	#expect(!encoded.contains("tms"))
+	let copy = CommonBusinessObject(copying: object)
+	#expect(copy.dateCreated == object.dateCreated)
+	#expect(copy.createdByUserId == "3")
+	copy.creationUserId = "9"
+	#expect(copy == object)
+}
+
+@Test func subclassAuditFieldsFallBackToObjectSpecificFields() async throws {
+	let order = DolibarrOrder(dateCreation: 1700000000, userAuthorId: "3")
+	#expect(order.dateCreated == Date(timeIntervalSince1970: 1700000000))
+	#expect(order.createdByUserId == "3")
+	let expenseReport = DolibarrExpenseReport(dateModify: 1700000100, userModifyId: "5")
+	#expect(expenseReport.dateModified == Date(timeIntervalSince1970: 1700000100))
+	#expect(expenseReport.modifiedByUserId == "5")
+}
+

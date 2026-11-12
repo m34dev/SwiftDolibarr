@@ -144,6 +144,11 @@ public final class DolibarrContract: CommonCommercialTransactionObject {
 
 	// Computed
 
+	/// ID of the user who created the contract
+	override public var createdByUserId: String? {
+		super.createdByUserId ?? Self.userId(userAuthorId)
+	}
+
 	/// Associated contract status type
 	override public var status: DolibarrObjectStatus {
 		guard let status = DolibarrObjectStatus.contracts.first(where: { $0.code == statusCode }) else { return .unknown }
@@ -157,15 +162,13 @@ public final class DolibarrContract: CommonCommercialTransactionObject {
 	}
 
 	/// Contract creation date
-	public var dateCreated: Date? {
-		guard let dateCreation else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateCreation))
+	override public var dateCreated: Date? {
+		Self.date(from: dateCreation) ?? super.dateCreated
 	}
 
 	/// Contract validation date
-	public var dateValidated: Date? {
-		guard let dateValidation else { return nil }
-		return Date(timeIntervalSince1970: TimeInterval(dateValidation))
+	override public var dateValidated: Date? {
+		Self.date(from: dateValidation) ?? super.dateValidated
 	}
 
 	// MARK: - Enums
