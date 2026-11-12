@@ -37,6 +37,9 @@ import OSLog
 ///
 /// - SeeAlso: ``DolibarrBusinessObject``
 /// - SeeAlso: ``CommonCommercialTransactionObject``
+#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
+@Observable
+#endif
 public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 
 	// MARK: - Properties
