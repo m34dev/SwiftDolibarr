@@ -123,6 +123,29 @@ public final class DolibarrQuote: CommonCommercialTransactionObject {
 
 	// Computed
 
+	/// Quote creation date
+	public var dateCreated: Date {
+		Date(timeIntervalSince1970: TimeInterval(dateP))
+	}
+
+	/// Quote validation date
+	public var dateValidated: Date? {
+		guard let dateV else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateV))
+	}
+
+	/// Quote validity end date
+	public var dateValidityEnd: Date? {
+		guard let validityEndDate else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(validityEndDate))
+	}
+
+	/// Quote planned delivery date
+	public var dateDelivery: Date? {
+		guard let deliveryDate else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(deliveryDate))
+	}
+
 	/// Associated quote status type
 	override public var status: DolibarrObjectStatus {
 		guard let status = DolibarrObjectStatus.quotes.first(where: { $0.code == statusCode }) else { return .unknown }

@@ -65,6 +65,16 @@ public final class DolibarrStockMovement: Equatable, Hashable, Codable, Dolibarr
 	public var userAuthorId: String?
 	public var tms: Int?
 
+	// Computed
+
+	/// Stock movement date
+	///
+	/// - Mapped Dolibarr property: **datem**
+	public var dateModified: Date? {
+		guard let dateModify else { return nil }
+		return Date(timeIntervalSince1970: TimeInterval(dateModify))
+	}
+
 	// MARK: - Enums
 
 	enum CodingKeys: String, CodingKey {

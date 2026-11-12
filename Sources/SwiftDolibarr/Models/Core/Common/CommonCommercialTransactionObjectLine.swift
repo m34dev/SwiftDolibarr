@@ -112,6 +112,51 @@ public class CommonCommercialTransactionObjectLine: CommonBusinessObjectLine {
 	/// - Mapped Dolibarr property: **subprice_ttc**
 	public var unitPriceInclTax: String?
 
+	// Computed
+
+	/// Line unit price excluding tax as a number, `0` when the value can't be parsed
+	public var unitPriceExclTaxValue: Double {
+		Double(unitPriceExclTax) ?? 0
+	}
+
+	/// Line unit price including tax, derived from the unit price excluding tax and the tax rate
+	///
+	/// Derived rather than read from **subprice_ttc**, which is missing on some Dolibarr versions
+	/// and defaults to `0` on locally created lines.
+	public var unitPriceInclTaxValue: Double {
+		unitPriceExclTaxValue * (1 + taxRateFraction)
+	}
+
+	/// Line quantity as a number, `0` when missing or unparsable
+	public var quantityValue: Double {
+		Double(quantity ?? "") ?? 0
+	}
+
+	/// Line tax rate as a fraction (e.g. `0.2` for 20 %)
+	public var taxRateFraction: Double {
+		(Double(taxRate) ?? 0) / 100
+	}
+
+	/// Line discount rate as a fraction (e.g. `0.1` for 10 %)
+	public var discountFraction: Double {
+		(Double(discountRate) ?? 0) / 100
+	}
+
+	/// Line total amount excluding tax as a number, `0` when the value can't be parsed
+	public var totalExclTaxValue: Double {
+		Double(totalExclTax) ?? 0
+	}
+
+	/// Line total tax amount as a number, `0` when the value can't be parsed
+	public var totalTaxValue: Double {
+		Double(totalTax) ?? 0
+	}
+
+	/// Line total amount including tax as a number, `0` when the value can't be parsed
+	public var totalInclTaxValue: Double {
+		Double(totalInclTax) ?? 0
+	}
+
 	// MARK: - Enums
 
 	enum CodingKeys: String, CodingKey {
