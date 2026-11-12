@@ -2407,3 +2407,47 @@ private func makeContract() -> DolibarrContract {
 	#expect(!project.usesEventOrganization)
 	#expect(project.dateStarted == nil)
 }
+
+@Test func expenseReportLineValues() async throws {
+	let line = DolibarrExpenseReportLine(
+		quantity: "2",
+		unitPriceInclTax: "120.00",
+		date: 1700000000,
+		feeTypeId: "1",
+		feeTypeCode: "TF_LUNCH",
+		feeTypeLabel: "Lunch",
+		totalExclTax: "200.00",
+		totalTax: "40.00",
+		totalInclTax: "240.00",
+		taxRate: "20.000"
+	)
+	#expect(line.taxRateFraction == 0.2)
+	#expect(line.unitPriceInclTaxValue == 120)
+	#expect(abs(line.unitPriceExclTaxValue - 100) < 0.000001)
+	#expect(line.quantityValue == 2)
+	#expect(line.totalExclTaxValue == 200)
+	#expect(line.totalInclTaxValue == 240)
+}
+
+@Test func productSupplierPriceValues() async throws {
+	let price = DolibarrProductSupplierPrice(supplierPrice: "50.5", supplierUnitPrice: "10.10", supplierDiscountRate: "5", supplierTaxRate: "")
+	#expect(price.supplierPriceValue == 50.5)
+	#expect(price.supplierUnitPriceValue == 10.1)
+	#expect(price.supplierDiscountFraction == 0.05)
+	#expect(price.supplierTaxFraction == 0)
+}
+
+@Test func projectAmountValues() async throws {
+	let project = DolibarrProject(leadAmount: "1500.00000000", budgetAmount: nil)
+	#expect(project.leadAmountValue == 1500)
+	#expect(project.budgetAmountValue == 0)
+}
+
+@Test func taskWorkloadAndBillable() async throws {
+	let task = DolibarrTask(billable: "1", plannedWorkload: "5400")
+	#expect(task.isBillable)
+	#expect(task.plannedWorkloadDuration == .seconds(5400))
+	let emptyTask = DolibarrTask()
+	#expect(!emptyTask.isBillable)
+	#expect(emptyTask.plannedWorkloadDuration == nil)
+}

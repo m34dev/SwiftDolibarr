@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.71.0] - 2026-11-12
+
+### Added
+- Computed numeric properties on expense report lines, product supplier prices, projects and tasks
+
 ## [0.70.0] - 2026-11-12
 
 ### Added

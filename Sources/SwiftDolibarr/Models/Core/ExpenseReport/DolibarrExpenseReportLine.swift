@@ -98,6 +98,36 @@ public final class DolibarrExpenseReportLine: CommonBusinessObjectLine {
 		Date(timeIntervalSince1970: TimeInterval(date))
 	}
 
+	/// Line tax rate as a fraction (e.g. `0.2` for 20 %)
+	public var taxRateFraction: Double {
+		(Double(taxRate) ?? 0) / 100
+	}
+
+	/// Line unit price including tax as a number, `0` when the value can't be parsed
+	public var unitPriceInclTaxValue: Double {
+		Double(unitPriceInclTax) ?? 0
+	}
+
+	/// Line unit price excluding tax, derived from the unit price including tax and the tax rate
+	public var unitPriceExclTaxValue: Double {
+		unitPriceInclTaxValue / (1 + taxRateFraction)
+	}
+
+	/// Line quantity as a number, `0` when the value can't be parsed
+	public var quantityValue: Double {
+		Double(quantity) ?? 0
+	}
+
+	/// Line total amount excluding tax as a number, `0` when the value can't be parsed
+	public var totalExclTaxValue: Double {
+		Double(totalExclTax) ?? 0
+	}
+
+	/// Line total amount including tax as a number, `0` when the value can't be parsed
+	public var totalInclTaxValue: Double {
+		Double(totalInclTax) ?? 0
+	}
+
     // MARK: - Enums
 
     enum CodingKeys: String, CodingKey {

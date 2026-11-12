@@ -95,6 +95,17 @@ public final class DolibarrTask: CommonBusinessObject {
 
     // Computed
 
+	/// Planned workload as a duration
+	public var plannedWorkloadDuration: Duration? {
+		guard let plannedWorkload, let seconds = TimeInterval(plannedWorkload) else { return nil }
+		return .seconds(seconds)
+	}
+
+	/// Whether time spent on the task is billable
+	public var isBillable: Bool {
+		billable == "1"
+	}
+
     /// Associated task status type
     override public var status: DolibarrObjectStatus {
         guard let status = DolibarrObjectStatus.tasks.first(where: { $0.code == statusCode }) else { return .unknown }
