@@ -360,6 +360,9 @@ public final class DolibarrContact: CommonBusinessObject, DolibarrPeopleObject, 
 		try container.encodeIfPresent(fax, forKey: .fax)
 		try container.encodeIfPresent(socialnetworks, forKey: .socialnetworks)
 		try container.encodeIfPresent(birthday, forKey: .birthday)
+		// No status routes: active or inactive is set through the body. Dolibarr v18 reads only `statut`,
+		// and newer versions fall back to it when `status` is 0
+		try encodeStatusCode(to: encoder, includingLegacyKey: true)
 		try super.encode(to: encoder)
 	}
 

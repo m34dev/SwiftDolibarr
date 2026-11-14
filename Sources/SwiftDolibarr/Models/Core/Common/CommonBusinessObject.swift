@@ -316,11 +316,24 @@ public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 	public func encode(to encoder: any Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encodeIfNotEmpty(id, forKey: .id)
-		try container.encodeIfNotEmpty(statusCode, forKey: .statusCode)
 		try container.encodeIfPresentAndNotEmpty(entityId, forKey: .entityId)
 		try container.encodeIfPresent(arrayOptions, forKey: .arrayOptions)
 		try container.encodeIfPresent(notePublic, forKey: .notePublic)
 		try container.encodeIfPresent(notePrivate, forKey: .notePrivate)
+	}
+
+	/// Encodes ``statusCode`` for objects whose status Dolibarr only changes through the request body.
+	///
+	/// ``encode(to:)`` doesn't send the status: objects with status routes (validate, close…) would
+	/// otherwise write back a status that may be stale, skipping Dolibarr's workflow.
+	/// Subclasses with no status routes, such as warehouses or third parties, call this in their own `encode(to:)`.
+	/// - Parameter includingLegacyKey: Also send `statut`, which older Dolibarr versions read instead of `status` for some objects
+	final func encodeStatusCode(to encoder: any Encoder, includingLegacyKey: Bool = false) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		try container.encodeIfNotEmpty(statusCode, forKey: .statusCode)
+		if includingLegacyKey {
+			try container.encodeIfNotEmpty(statusCode, forKey: .statusCodeLegacy)
+		}
 	}
 
 	/// Value equality used by ``==``.

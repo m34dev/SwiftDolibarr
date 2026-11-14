@@ -314,6 +314,8 @@ public final class DolibarrTask: CommonBusinessObject {
 		try container.encodeIfPresent(progress, forKey: .progress)
 		try container.encodeIfPresent(description, forKey: .description)
 		try container.encodeIfPresent(budgetAmount, forKey: .budgetAmount)
+		// No status routes: the status is set through the body (Dolibarr v18 ignores it)
+		try encodeStatusCode(to: encoder)
 		try super.encode(to: encoder)
 	}
 

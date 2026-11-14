@@ -499,6 +499,8 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
 		try container.encodeIfPresent(address, forKey: .address)
 		try container.encodeIfPresent(zipCode, forKey: .zipCode)
 		try container.encodeIfPresent(city, forKey: .city)
+		// No status routes: open or closed is set through the body
+		try encodeStatusCode(to: encoder)
 		try super.encode(to: encoder)
     }
 
