@@ -74,7 +74,7 @@ import Testing
 
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode(DolibarrSupplierOrder.self, from: encoder.encode(order))
-    #expect(redecoded == order)
+    #expect(keepingStatus(of: order, in: redecoded) == order)
     #expect(redecoded.orderMethodId == "2")
     #expect(redecoded.orderMethod == "Phone")
 }
@@ -127,7 +127,7 @@ import Testing
 
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode(DolibarrSupplierInvoice.self, from: encoder.encode(invoice))
-    #expect(redecoded == invoice)
+    #expect(keepingStatus(of: invoice, in: redecoded) == invoice)
 }
 
 /// Live `GET /supplierorders` response from Dolibarr v21 (approved order, not yet sent to supplier)
@@ -229,7 +229,7 @@ import Testing
 
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode(DolibarrSupplierOrder.self, from: encoder.encode(order))
-    #expect(redecoded == order)
+    #expect(keepingStatus(of: order, in: redecoded) == order)
 }
 
 /// Live `GET /supplierinvoices` response from Dolibarr v21 (validated, unpaid invoice)
@@ -338,7 +338,15 @@ import Testing
 
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode(DolibarrSupplierInvoice.self, from: encoder.encode(invoice))
-    #expect(redecoded == invoice)
+    #expect(keepingStatus(of: invoice, in: redecoded) == invoice)
+}
+
+// MARK: - Round trip
+
+/// Objects with status routes don't encode their status, so a round trip can't bring it back
+private func keepingStatus<T: CommonBusinessObject>(of original: T, in redecoded: T) -> T {
+    redecoded.statusCode = original.statusCode
+    return redecoded
 }
 
 // MARK: - Equality and hashing
@@ -662,7 +670,7 @@ private func makeContact() -> DolibarrContact {
 
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode([DolibarrSupplierOrder].self, from: encoder.encode(orders))
-    #expect(redecoded == orders)
+    #expect(zip(orders, redecoded).map { keepingStatus(of: $0, in: $1) } == orders)
 }
 
 /// Live `GET /supplierorders/{id}` response from Dolibarr v23 (ordered order, with ordering method)
@@ -726,7 +734,7 @@ private func makeContact() -> DolibarrContact {
 
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode(DolibarrSupplierOrder.self, from: encoder.encode(order))
-    #expect(redecoded == order)
+    #expect(keepingStatus(of: order, in: redecoded) == order)
     #expect(redecoded.orderMethodId == "5")
     #expect(redecoded.orderMethod == "En ligne")
     #expect(redecoded.projectId == "1")
@@ -933,7 +941,7 @@ private func makeContact() -> DolibarrContact {
 
     let encoder = JSONEncoder()
     let redecoded = try decoder.decode([DolibarrOrder].self, from: encoder.encode(orders))
-    #expect(redecoded == orders)
+    #expect(zip(orders, redecoded).map { keepingStatus(of: $0, in: $1) } == orders)
 }
 
 @Test func warehousesDifferingInLabelAreNotEqual() async throws {
@@ -1461,7 +1469,7 @@ func decodeProjectId(field: String, expected: String?) async throws {
     let encoded = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
 
     #expect(encoded["fk_project"] as? String == "7")
-    #expect(try JSONDecoder().decode(DolibarrSupplierOrder.self, from: data) == order)
+    #expect(keepingStatus(of: order, in: try JSONDecoder().decode(DolibarrSupplierOrder.self, from: data)) == order)
     #expect(DolibarrSupplierOrder(copying: order).projectId == "7")
     #expect(order != DolibarrSupplierOrder(thirdPartyId: "2", ref: "PO2610-0001", projectId: "8", id: "1"))
 }
@@ -1495,6 +1503,54 @@ func decodeProjectId(field: String, expected: String?) async throws {
     #expect(redecoded == warehouse)
     #expect(DolibarrWarehouse(copying: warehouse).projectId == "7")
     #expect(warehouse != DolibarrWarehouse(label: "Main", projectId: "8", id: "3", statusCode: "1"))
+}
+
+@Test func productEncodesEditedSellAndBuyStatus() async throws {
+    let json = #"{"id":"5","ref":"P1","label":"P","status":"1","status_buy":"1","type":"0"}"#
+    let product = try JSONDecoder().decode(DolibarrProduct.self, from: Data(json.utf8))
+    product.sellStatus = "0"
+    product.buyStatus = "0"
+    let body = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(product)) as? [String: Any])
+    #expect(body["status"] as? String == "0")
+    #expect(body["status_buy"] as? String == "0")
+}
+
+@Test func objectsWithStatusRoutesDontEncodeStatus() async throws {
+    let project = DolibarrProject(id: "4", statusCode: "1")
+    let body = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(project)) as? [String: Any])
+    #expect(body["status"] == nil)
+    #expect(body["statut"] == nil)
+}
+
+@Test func thirdPartyAndTaskEncodeStatus() async throws {
+    let thirdParty = DolibarrThirdParty(id: "7", statusCode: "0")
+    let thirdPartyBody = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(thirdParty)) as? [String: Any])
+    #expect(thirdPartyBody["status"] as? String == "0")
+    #expect(thirdPartyBody["statut"] == nil)
+
+    let task = DolibarrTask(id: "9", statusCode: "2")
+    let taskBody = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(task)) as? [String: Any])
+    #expect(taskBody["status"] as? String == "2")
+}
+
+@Test func contactEncodesStatusAndLegacyStatut() async throws {
+    let contact = makeContact()
+    contact.statusCode = "0"
+    let json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(contact)) as? [String: Any])
+    #expect(json["status"] as? String == "0")
+    #expect(json["statut"] as? String == "0")
+    #expect(try JSONDecoder().decode(DolibarrContact.self, from: JSONEncoder().encode(contact)) == contact)
+}
+
+@Test func warehouseEncodesStatusAndLegacyStatut() async throws {
+    let open = DolibarrWarehouse(label: "Main", statusCode: "1")
+    let json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(open)) as? [String: Any])
+    #expect(json["status"] as? String == "1")
+    #expect(json["statut"] as? String == "1")
+
+    let closed = DolibarrWarehouse(label: "Main", statusCode: "0")
+    let closedJSON = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(closed)) as? [String: Any])
+    #expect(closedJSON["statut"] as? String == "0")
 }
 
 @Test func interventionAndTaskDecodeNumericProjectId() async throws {
@@ -1598,7 +1654,7 @@ func decodeProjectId(field: String, expected: String?) async throws {
     #expect(line.comment == "Done")
 
     let redecoded = try decoder.decode(DolibarrContract.self, from: JSONEncoder().encode(contract))
-    #expect(redecoded == contract)
+    #expect(keepingStatus(of: contract, in: redecoded) == contract)
 }
 
 /// Live contract list from Dolibarr v24, trimmed to mapped and representative keys
@@ -1657,7 +1713,7 @@ func decodeProjectId(field: String, expected: String?) async throws {
     #expect(line.productRef == "S500")
 
     let redecoded = try decoder.decode([DolibarrContract].self, from: JSONEncoder().encode(contracts))
-    #expect(redecoded == contracts)
+    #expect(zip(contracts, redecoded).map { keepingStatus(of: $0, in: $1) } == contracts)
 }
 
 /// Live contract list from Dolibarr v21, trimmed to mapped and representative keys
@@ -1713,7 +1769,7 @@ func decodeProjectId(field: String, expected: String?) async throws {
     #expect(line.dateStartReal == 1772492400)
 
     let redecoded = try decoder.decode([DolibarrContract].self, from: JSONEncoder().encode(contracts))
-    #expect(redecoded == contracts)
+    #expect(zip(contracts, redecoded).map { keepingStatus(of: $0, in: $1) } == contracts)
 }
 
 @Test func decodeContractWithoutLines() async throws {
@@ -2579,3 +2635,106 @@ private func makeContract() -> DolibarrContract {
 	#expect(expenseReport.modifiedByUserId == "5")
 }
 
+
+// MARK: - Task time spent
+
+/// `lines` entry of `GET /tasks/1?includetimespent=2` on Dolibarr v25
+@Test func decodeTaskTimeSpentListShape() async throws {
+    let json = """
+    {
+        "socid": null,
+        "thirdparty_name": null,
+        "thirdparty_email": null,
+        "project_ref": "PJ2602-0001",
+        "project_label": "P1",
+        "project_public": "0",
+        "public": "0",
+        "fk_task": "1",
+        "task_ref": "TK2602-0001",
+        "task_label": "T1",
+        "timespent_line_id": "1",
+        "timespent_line_ref_ext": null,
+        "timespent_line_date": 1794610800,
+        "timespent_line_datehour": 1794654000,
+        "timespent_line_withhour": "0",
+        "timespent_line_duration": "5400",
+        "timespent_line_fk_user": "1",
+        "timespent_line_fk_product": "0",
+        "timespent_line_thm": null,
+        "timespent_line_note": "task note text"
+    }
+    """
+    let decoder = JSONDecoder()
+    let timeSpent = try decoder.decode(DolibarrTaskTimeSpent.self, from: Data(json.utf8))
+
+    #expect(timeSpent.id == "1")
+    #expect(timeSpent.taskId == "1")
+    #expect(timeSpent.dateTimestamp == 1794610800)
+    #expect(timeSpent.dateHourTimestamp == 1794654000)
+    #expect(timeSpent.withHour == false)
+    #expect(timeSpent.date == Date(timeIntervalSince1970: 1794610800))
+    #expect(timeSpent.durationSeconds == 5400)
+    #expect(timeSpent.duration == .seconds(5400))
+    #expect(timeSpent.userId == "1")
+    #expect(timeSpent.productId == "0")
+    #expect(timeSpent.hourlyRate == nil)
+    #expect(timeSpent.note == "task note text")
+}
+
+@Test func taskTimeSpentDateUsesHourOnlyWhenSet() async throws {
+    let timeSpent = DolibarrTaskTimeSpent(id: "1", dateTimestamp: 1794610800, dateHourTimestamp: 1794654000, withHour: true)
+    #expect(timeSpent.date == Date(timeIntervalSince1970: 1794654000))
+    timeSpent.withHour = false
+    #expect(timeSpent.date == Date(timeIntervalSince1970: 1794610800))
+}
+
+@Test func taskTimeSpentDateSetterSetsHour() async throws {
+    let timeSpent = DolibarrTaskTimeSpent(id: "1", dateTimestamp: 1794610800, dateHourTimestamp: 1794654000, withHour: false)
+    timeSpent.date = Date(timeIntervalSince1970: 1794660000)
+    #expect(timeSpent.withHour)
+    #expect(timeSpent.dateHourTimestamp == 1794660000)
+    #expect(timeSpent.date == Date(timeIntervalSince1970: 1794660000))
+}
+
+@Test func encodeTaskTimeSpentWriteBody() async throws {
+    // 2026-11-14 11:00:00 GMT
+    let timeSpent = DolibarrTaskTimeSpent(
+        id: "1",
+        taskId: "1",
+        durationSeconds: 5400,
+        userId: "3",
+        productId: "7",
+        note: "Meeting",
+        progress: 150
+    )
+    timeSpent.date = Date(timeIntervalSince1970: 1794654000)
+
+    let data = try JSONEncoder().encode(timeSpent)
+    let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    #expect(Set(object.keys) == ["date", "duration", "user_id", "product_id", "note", "progress"])
+    #expect(object["date"] as? String == "2026-11-14 11:00:00")
+    #expect(object["duration"] as? Int == 5400)
+    #expect(object["user_id"] as? Int == 3)
+    #expect(object["product_id"] as? Int == 7)
+    #expect(object["note"] as? String == "Meeting")
+    #expect(object["progress"] as? Int == 100)
+}
+
+@Test func encodeNewTaskTimeSpentDefaults() async throws {
+    let timeSpent = DolibarrTaskTimeSpent(durationSeconds: 60, productId: "0")
+    timeSpent.date = Date(timeIntervalSince1970: 0)
+
+    let data = try JSONEncoder().encode(timeSpent)
+    let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    #expect(object["date"] as? String == "1970-01-01 00:00:00")
+    #expect(object["user_id"] as? Int == 0)
+    #expect(object["note"] as? String == "")
+    #expect(object["product_id"] == nil)
+    #expect(object["progress"] == nil)
+}
+
+@Test func encodeTaskTimeSpentWithoutDateFails() async throws {
+    #expect(throws: EncodingError.self) {
+        try JSONEncoder().encode(DolibarrTaskTimeSpent(durationSeconds: 60))
+    }
+}

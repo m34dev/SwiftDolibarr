@@ -47,7 +47,11 @@ public final class DolibarrProduct: CommonBusinessObject {
 	// Required
 
 	public var ref: String
+	/// For sale status, Dolibarr's `status` (`tosell` column)
+	///
+	/// Products don't use the inherited ``statusCode``: their status is ``sellStatus`` and ``buyStatus``.
 	public var sellStatus: String
+	/// For purchase status, Dolibarr's `status_buy` (`tobuy` column)
 	public var buyStatus: String
 	public var typeCode: String
 	public var label: String

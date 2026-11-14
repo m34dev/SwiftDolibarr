@@ -226,6 +226,8 @@ public final class DolibarrWarehouse: CommonBusinessObject, Locatable {
 		try container.encodeIfPresent(city, forKey: .city)
 		try container.encodeIfPresent(phone, forKey: .phone)
         try container.encodeIfPresent(countryId, forKey: .countryId)
+		// No status routes: open or closed is set through the body. Dolibarr v18 reads only `statut`
+		try encodeStatusCode(to: encoder, includingLegacyKey: true)
 		try super.encode(to: encoder)
     }
 
