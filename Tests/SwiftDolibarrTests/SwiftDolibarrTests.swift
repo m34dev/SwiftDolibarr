@@ -2635,3 +2635,106 @@ private func makeContract() -> DolibarrContract {
 	#expect(expenseReport.modifiedByUserId == "5")
 }
 
+
+// MARK: - Task time spent
+
+/// `lines` entry of `GET /tasks/1?includetimespent=2` on Dolibarr v25
+@Test func decodeTaskTimeSpentListShape() async throws {
+    let json = """
+    {
+        "socid": null,
+        "thirdparty_name": null,
+        "thirdparty_email": null,
+        "project_ref": "PJ2602-0001",
+        "project_label": "P1",
+        "project_public": "0",
+        "public": "0",
+        "fk_task": "1",
+        "task_ref": "TK2602-0001",
+        "task_label": "T1",
+        "timespent_line_id": "1",
+        "timespent_line_ref_ext": null,
+        "timespent_line_date": 1794610800,
+        "timespent_line_datehour": 1794654000,
+        "timespent_line_withhour": "0",
+        "timespent_line_duration": "5400",
+        "timespent_line_fk_user": "1",
+        "timespent_line_fk_product": "0",
+        "timespent_line_thm": null,
+        "timespent_line_note": "task note text"
+    }
+    """
+    let decoder = JSONDecoder()
+    let timeSpent = try decoder.decode(DolibarrTaskTimeSpent.self, from: Data(json.utf8))
+
+    #expect(timeSpent.id == "1")
+    #expect(timeSpent.taskId == "1")
+    #expect(timeSpent.dateTimestamp == 1794610800)
+    #expect(timeSpent.dateHourTimestamp == 1794654000)
+    #expect(timeSpent.withHour == false)
+    #expect(timeSpent.date == Date(timeIntervalSince1970: 1794610800))
+    #expect(timeSpent.durationSeconds == 5400)
+    #expect(timeSpent.duration == .seconds(5400))
+    #expect(timeSpent.userId == "1")
+    #expect(timeSpent.productId == "0")
+    #expect(timeSpent.hourlyRate == nil)
+    #expect(timeSpent.note == "task note text")
+}
+
+@Test func taskTimeSpentDateUsesHourOnlyWhenSet() async throws {
+    let timeSpent = DolibarrTaskTimeSpent(id: "1", dateTimestamp: 1794610800, dateHourTimestamp: 1794654000, withHour: true)
+    #expect(timeSpent.date == Date(timeIntervalSince1970: 1794654000))
+    timeSpent.withHour = false
+    #expect(timeSpent.date == Date(timeIntervalSince1970: 1794610800))
+}
+
+@Test func taskTimeSpentDateSetterSetsHour() async throws {
+    let timeSpent = DolibarrTaskTimeSpent(id: "1", dateTimestamp: 1794610800, dateHourTimestamp: 1794654000, withHour: false)
+    timeSpent.date = Date(timeIntervalSince1970: 1794660000)
+    #expect(timeSpent.withHour)
+    #expect(timeSpent.dateHourTimestamp == 1794660000)
+    #expect(timeSpent.date == Date(timeIntervalSince1970: 1794660000))
+}
+
+@Test func encodeTaskTimeSpentWriteBody() async throws {
+    // 2026-11-14 11:00:00 GMT
+    let timeSpent = DolibarrTaskTimeSpent(
+        id: "1",
+        taskId: "1",
+        durationSeconds: 5400,
+        userId: "3",
+        productId: "7",
+        note: "Meeting",
+        progress: 150
+    )
+    timeSpent.date = Date(timeIntervalSince1970: 1794654000)
+
+    let data = try JSONEncoder().encode(timeSpent)
+    let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    #expect(Set(object.keys) == ["date", "duration", "user_id", "product_id", "note", "progress"])
+    #expect(object["date"] as? String == "2026-11-14 11:00:00")
+    #expect(object["duration"] as? Int == 5400)
+    #expect(object["user_id"] as? Int == 3)
+    #expect(object["product_id"] as? Int == 7)
+    #expect(object["note"] as? String == "Meeting")
+    #expect(object["progress"] as? Int == 100)
+}
+
+@Test func encodeNewTaskTimeSpentDefaults() async throws {
+    let timeSpent = DolibarrTaskTimeSpent(durationSeconds: 60, productId: "0")
+    timeSpent.date = Date(timeIntervalSince1970: 0)
+
+    let data = try JSONEncoder().encode(timeSpent)
+    let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    #expect(object["date"] as? String == "1970-01-01 00:00:00")
+    #expect(object["user_id"] as? Int == 0)
+    #expect(object["note"] as? String == "")
+    #expect(object["product_id"] == nil)
+    #expect(object["progress"] == nil)
+}
+
+@Test func encodeTaskTimeSpentWithoutDateFails() async throws {
+    #expect(throws: EncodingError.self) {
+        try JSONEncoder().encode(DolibarrTaskTimeSpent(durationSeconds: 60))
+    }
+}

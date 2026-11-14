@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.73.0] - 2026-11-14
+
+### Added
+- `DolibarrTaskTimeSpent`, a task time spent entry, decoded from the `lines` of `GET /tasks/{id}?includetimespent=2`
+  - Encodes the body to add (`POST /tasks/{id}/addtimespent`) or update (`PUT /tasks/{id}/timespent/{timespent_id}`) an entry, with a write-only `progress`
+ 
+### Changed
+- Removed `status` property from encoders except for business objects that require it
+
 ## [0.72.0] - 2026-11-12
 
 ### Added
