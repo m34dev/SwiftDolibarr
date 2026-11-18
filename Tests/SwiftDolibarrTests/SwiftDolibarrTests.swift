@@ -758,6 +758,28 @@ private func makeContact() -> DolibarrContact {
     #expect(methods[1].label == "En ligne")
 }
 
+/// `GET /setup/dictionary/socialnetworks` response (`fetch_object` returns every column as a string)
+@Test func decodeSocialNetworks() async throws {
+    let json = """
+    [
+        { "rowid": "5", "entity": "1", "code": "facebook", "label": "Facebook", "url": "https://www.facebook.com/{socialid}", "icon": "fa-facebook", "active": "1" },
+        { "rowid": 12, "entity": 1, "code": "mastodon", "label": "Mastodon", "url": "{socialid}", "icon": null, "active": 0 },
+        { "rowid": "30", "code": "whatsapp", "label": "Whatsapp", "url": null }
+    ]
+    """
+    let decoder = JSONDecoder()
+    let networks = try decoder.decode([DolibarrSocialNetwork].self, from: Data(json.utf8))
+
+    #expect(networks.count == 3)
+    #expect(networks[0] == DolibarrSocialNetwork(id: "5", code: "facebook", label: "Facebook", url: "https://www.facebook.com/{socialid}", icon: "fa-facebook", active: true))
+    #expect(networks[1].id == "12")
+    #expect(networks[1].url == "{socialid}")
+    #expect(networks[1].icon == nil)
+    #expect(networks[1].active == false)
+    #expect(networks[2].url == nil)
+    #expect(networks[2].active == true)
+}
+
 /// Live `GET /orders` response from Dolibarr v24 (`subprice` and `subprice_ttc` returned as numbers)
 @Test func decodeLiveOrdersV24() async throws {
     let json = """

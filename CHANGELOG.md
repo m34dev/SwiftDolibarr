@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org) using the 
 - Agenda event write-only main contact ID, `DolibarrAgendaEvent.contactId` (`contact_id`), which Dolibarr does not return
 - `DolibarrAgendaEventContactAssigned`, an alias of `DolibarrAgendaEventUserAssigned`
 - Public `DolibarrAgendaEventUserAssigned.init(id:mandatory:answerStatus:transparency:)`
+- `DolibarrSocialNetwork`, a social networks dictionary entry (`GET /setup/dictionary/socialnetworks`, table `c_socialnetworks`), with its code, label, link template, icon and active flag
+  - Dolibarr answers with a 400 error when the Social networks module is disabled
 
 ### Changed
 - **Breaking:** `DolibarrProductSupplierPrice.supplierMinimumQuanity` renamed to `supplierMinimumQuantity`
