@@ -1,7 +1,7 @@
 # Swift Dolibarr
 
-[![Latest Release](https://lab.frogg.it/dolibarr/swiftdolibarr/-/badges/release.svg)](https://lab.frogg.it/dolibarr/swiftdolibarr/-/releases)
-[![Pipeline status](https://lab.frogg.it/dolibarr/swiftdolibarr/badges/main/pipeline.svg)](https://lab.frogg.it/dolibarr/swiftdolibarr/-/commits/main)
+[![Latest Release](https://img.shields.io/github/v/release/m34dev/SwiftDolibarr)](https://github.com/m34dev/SwiftDolibarr/releases/latest)
+[![Build status](https://github.com/m34dev/SwiftDolibarr/actions/workflows/swiftPackage.yml/badge.svg?branch=main)](https://github.com/m34dev/SwiftDolibarr/actions/workflows/swiftPackage.yml)
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fm34dev%2Fswiftdolibarr%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/m34dev/swiftdolibarr)
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fm34dev%2Fswiftdolibarr%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/m34dev/swiftdolibarr)
 

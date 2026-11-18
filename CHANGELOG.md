@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.74.0] - 2026-11-18
+
+### Added
+- Product supplier price description, discount amount, charges, NPR tax flag, multicurrency price, unit price and rate, delivery time, reputation, barcode and barcode type, packaging, status, and read-only creation and modification dates
+- `DolibarrSupplierReputation`, with a computed `supplierReputationValue` on product supplier prices
+- Computed numeric values for the new product supplier price fields and the minimum quantity
+- Agenda event assigned contacts, `DolibarrAgendaEvent.contactsAssigned` (`socpeopleassigned`), keyed by contact ID
+  - Send the full list on `PUT /agendaevents/{id}`: Dolibarr replaces all linked contacts with it, an empty dictionary removes them, `nil` keeps them
+- Agenda event write-only main contact ID, `DolibarrAgendaEvent.contactId` (`contact_id`), which Dolibarr does not return
+- `DolibarrAgendaEventContactAssigned`, an alias of `DolibarrAgendaEventUserAssigned`
+- Public `DolibarrAgendaEventUserAssigned.init(id:mandatory:answerStatus:transparency:)`
+- `DolibarrSocialNetwork`, a social networks dictionary entry (`GET /setup/dictionary/socialnetworks`, table `c_socialnetworks`), with its code, label, link template, icon and active flag
+  - Dolibarr answers with a 400 error when the Social networks module is disabled
+
+### Changed
+- **Breaking:** `DolibarrProductSupplierPrice.supplierMinimumQuanity` renamed to `supplierMinimumQuantity`
+- **Breaking:** `DolibarrProductSupplierPrice.supplierProductAvailability` is optional and decodes a null or zero availability as `nil`
+- Product supplier prices no longer decode `price_base_type`, which held the product's value; it is only sent, defaulting to `HT`
+- Product supplier prices encode every field `POST /products/{id}/purchase_prices` accepts and no read-only fields
+
+### Fixed
+- Adding or updating a product supplier price on a server with the multicurrency module stored a price of 0: the multicurrency price, rate and code are now sent
+- `DolibarrAgendaEventUserAssigned.answerStatus` was never decoded or sent: it now maps to `answer_status`
+
 ## [0.73.0] - 2026-11-14
 
 ### Added

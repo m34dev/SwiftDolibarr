@@ -758,6 +758,28 @@ private func makeContact() -> DolibarrContact {
     #expect(methods[1].label == "En ligne")
 }
 
+/// `GET /setup/dictionary/socialnetworks` response (`fetch_object` returns every column as a string)
+@Test func decodeSocialNetworks() async throws {
+    let json = """
+    [
+        { "rowid": "5", "entity": "1", "code": "facebook", "label": "Facebook", "url": "https://www.facebook.com/{socialid}", "icon": "fa-facebook", "active": "1" },
+        { "rowid": 12, "entity": 1, "code": "mastodon", "label": "Mastodon", "url": "{socialid}", "icon": null, "active": 0 },
+        { "rowid": "30", "code": "whatsapp", "label": "Whatsapp", "url": null }
+    ]
+    """
+    let decoder = JSONDecoder()
+    let networks = try decoder.decode([DolibarrSocialNetwork].self, from: Data(json.utf8))
+
+    #expect(networks.count == 3)
+    #expect(networks[0] == DolibarrSocialNetwork(id: "5", code: "facebook", label: "Facebook", url: "https://www.facebook.com/{socialid}", icon: "fa-facebook", active: true))
+    #expect(networks[1].id == "12")
+    #expect(networks[1].url == "{socialid}")
+    #expect(networks[1].icon == nil)
+    #expect(networks[1].active == false)
+    #expect(networks[2].url == nil)
+    #expect(networks[2].active == true)
+}
+
 /// Live `GET /orders` response from Dolibarr v24 (`subprice` and `subprice_ttc` returned as numbers)
 @Test func decodeLiveOrdersV24() async throws {
     let json = """
@@ -1493,6 +1515,93 @@ func decodeProjectId(field: String, expected: String?) async throws {
     let other = DolibarrAgendaEvent(copying: event)
     other.projectId = "8"
     #expect(other != event)
+}
+
+@Test func agendaEventContactsAssignedDecoding() async throws {
+    let json = """
+    {
+        "id": "1", "ref": "1", "label": "Call", "percentage": "0", "fulldayevent": "0",
+        "datep": 1793228400, "datef": 1793232000,
+        "socpeopleassigned": {
+            "12": { "id": "12", "mandatory": "0", "answer_status": "0", "transparency": "0" },
+            "34": { "id": "34", "mandatory": "0", "answer_status": "0", "transparency": "0" }
+        }
+    }
+    """
+    let event = try JSONDecoder().decode(DolibarrAgendaEvent.self, from: Data(json.utf8))
+
+    #expect(event.contactsAssigned?.keys.sorted() == ["12", "34"])
+    #expect(event.contactsAssigned?["34"]?.id == "34")
+    #expect(event.contactsAssigned?["34"]?.answerStatus == "0")
+    #expect(event.contactId == nil)
+    #expect(DolibarrAgendaEvent(copying: event).contactsAssigned == event.contactsAssigned)
+}
+
+@Test func agendaEventNoContactsAssignedDecoding() async throws {
+    // Dolibarr sends an empty PHP array as [] rather than {}
+    let json = """
+    {
+        "id": "1", "ref": "1", "label": "Call", "percentage": "0", "fulldayevent": "0",
+        "datep": 1793228400, "datef": 1793232000, "socpeopleassigned": []
+    }
+    """
+    let event = try JSONDecoder().decode(DolibarrAgendaEvent.self, from: Data(json.utf8))
+
+    #expect(event.contactsAssigned == nil)
+}
+
+@Test func agendaEventContactsAssignedEncoding() async throws {
+    let event = DolibarrAgendaEvent(
+        label: "Call",
+        contactsAssigned: ["12": DolibarrAgendaEventContactAssigned(id: "12")],
+        contactId: "12"
+    )
+    let data = try JSONEncoder().encode(event)
+    let encoded = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    let contacts = try #require(encoded["socpeopleassigned"] as? [String: [String: Any]])
+
+    // Dolibarr's create() reads the keys and update() reads each "id", so both must be the contact ID
+    #expect(contacts.keys.sorted() == ["12"])
+    #expect(contacts["12"]?["id"] as? String == "12")
+    #expect(contacts["12"]?.count == 1)
+    #expect(encoded["contact_id"] as? String == "12")
+
+    // An empty dictionary is sent to remove all contacts, nil leaves them as they are
+    let cleared = DolibarrAgendaEvent(label: "Call", contactsAssigned: [:])
+    let clearedEncoded = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(cleared)) as? [String: Any])
+    #expect((clearedEncoded["socpeopleassigned"] as? [String: Any])?.isEmpty == true)
+
+    let untouched = DolibarrAgendaEvent(label: "Call")
+    let untouchedEncoded = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(untouched)) as? [String: Any])
+    #expect(untouchedEncoded["socpeopleassigned"] == nil)
+    #expect(untouchedEncoded["contact_id"] == nil)
+}
+
+@Test func agendaEventContactsAssignedEquality() async throws {
+    let event = DolibarrAgendaEvent(label: "Call", contactsAssigned: ["12": DolibarrAgendaEventContactAssigned(id: "12")], id: "1")
+    let copy = DolibarrAgendaEvent(copying: event)
+    #expect(copy == event)
+
+    copy.contactsAssigned?["34"] = DolibarrAgendaEventContactAssigned(id: "34")
+    #expect(copy != event)
+
+    // contact_id is write-only, so it is ignored when comparing with an event decoded from Dolibarr
+    let withContactId = DolibarrAgendaEvent(copying: event)
+    withContactId.contactId = "12"
+    #expect(withContactId == event)
+    #expect(withContactId.contactId == "12")
+}
+
+@Test func agendaEventUserAssignedAnswerStatusRoundTrip() async throws {
+    let json = """
+    { "id": "3", "mandatory": "1", "answer_status": "1", "transparency": "1" }
+    """
+    let user = try JSONDecoder().decode(DolibarrAgendaEventUserAssigned.self, from: Data(json.utf8))
+    #expect(user.answerStatus == "1")
+
+    let encoded = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(user)) as? [String: Any])
+    #expect(encoded["answer_status"] as? String == "1")
+    #expect(encoded["answerStatus"] == nil)
 }
 
 @Test func warehouseProjectIdRoundTrip() async throws {
@@ -2508,6 +2617,194 @@ private func makeContract() -> DolibarrContract {
 	#expect(price.supplierUnitPriceValue == 10.1)
 	#expect(price.supplierDiscountFraction == 0.05)
 	#expect(price.supplierTaxFraction == 0)
+}
+
+@Test func decodeProductSupplierPriceWithAllFields() async throws {
+	let json = """
+	{
+		"id": "12",
+		"product_fourn_price_id": "34",
+		"fourn_ref": "SUP-12",
+		"desc_supplier": "Box of 10",
+		"fourn_id": "7",
+		"fourn_name": "Acme",
+		"fourn_qty": "10",
+		"fourn_price": "90.00000000",
+		"fourn_unitprice": "9.00000000",
+		"fourn_remise_percent": "5",
+		"fourn_remise": "4.50000000",
+		"fourn_charges": "1.20000000",
+		"fourn_tva_tx": "20.000",
+		"fourn_tva_npr": "0",
+		"fourn_multicurrency_code": "USD",
+		"fourn_multicurrency_price": "99.00000000",
+		"fourn_multicurrency_unitprice": "9.90000000",
+		"fourn_multicurrency_tx": "1.10000000",
+		"fk_availability": "2",
+		"delivery_time_days": "3",
+		"supplier_reputation": "FAVORITE",
+		"supplier_barcode": "3700000000001",
+		"supplier_fk_barcode_type": "2",
+		"packaging": 5.0,
+		"status": "1",
+		"fourn_date_creation": 1700000000,
+		"fourn_date_modification": 1700100000,
+		"price_base_type": null
+	}
+	"""
+	let price = try JSONDecoder().decode(DolibarrProductSupplierPrice.self, from: Data(json.utf8))
+
+	#expect(price.id == "34")
+	#expect(price.productId == "12")
+	#expect(price.supplierDescription == "Box of 10")
+	#expect(price.supplierMinimumQuantity == "10")
+	#expect(price.supplierMinimumQuantityValue == 10)
+	#expect(price.supplierDiscountAmountValue == 4.5)
+	#expect(price.supplierChargesValue == 1.2)
+	#expect(!price.isSupplierTaxNPR)
+	#expect(price.supplierMulticurrencyCode == "USD")
+	#expect(price.supplierMulticurrencyPriceValue == 99)
+	#expect(price.supplierMulticurrencyUnitPriceValue == 9.9)
+	#expect(price.supplierMulticurrencyRateValue == 1.1)
+	#expect(price.supplierPriceBaseType == nil)
+	#expect(price.supplierProductAvailability == "2")
+	#expect(price.deliveryTimeDaysValue == 3)
+	#expect(price.supplierReputation == "FAVORITE")
+	#expect(price.supplierReputationValue == .favorite)
+	#expect(price.supplierBarcode == "3700000000001")
+	#expect(price.supplierBarcodeTypeId == "2")
+	#expect(price.packagingValue == 5)
+	#expect(price.isActive == true)
+	#expect(price.dateCreated == Date(timeIntervalSince1970: 1700000000))
+	#expect(price.dateModified == Date(timeIntervalSince1970: 1700100000))
+}
+
+@Test func decodeProductSupplierPriceFromOldServer() async throws {
+	// Older servers, and servers without the barcode module or charges setting, omit or null these keys
+	let json = """
+	{
+		"id": "12",
+		"product_fourn_price_id": "34",
+		"fourn_ref": "SUP-12",
+		"fourn_id": "7",
+		"fourn_name": "Acme",
+		"fourn_qty": "1",
+		"fourn_price": "9.00000000",
+		"fourn_unitprice": "9.00000000",
+		"fourn_remise_percent": "0",
+		"fourn_tva_tx": "20.000",
+		"fk_availability": null,
+		"delivery_time_days": null,
+		"supplier_reputation": "",
+		"fourn_multicurrency_price": null,
+		"fourn_date_creation": ""
+	}
+	"""
+	let price = try JSONDecoder().decode(DolibarrProductSupplierPrice.self, from: Data(json.utf8))
+
+	#expect(price.supplierDescription == nil)
+	#expect(price.supplierDiscountAmount == nil)
+	#expect(price.supplierCharges == nil)
+	#expect(price.supplierTaxNPR == nil)
+	#expect(price.supplierMulticurrencyPrice == nil)
+	#expect(price.supplierProductAvailability == nil)
+	#expect(price.deliveryTimeDays == nil)
+	#expect(price.supplierReputation == nil)
+	#expect(price.supplierReputationValue == nil)
+	#expect(price.supplierBarcode == nil)
+	#expect(price.packaging == nil)
+	#expect(price.isActive == nil)
+	#expect(price.dateCreated == nil)
+	#expect(price.dateModified == nil)
+}
+
+@Test func productSupplierPriceReputationAndNPRSetters() async throws {
+	let price = DolibarrProductSupplierPrice(supplierReputation: "UNKNOWN")
+	#expect(price.supplierReputationValue == nil)
+	price.supplierReputationValue = .doNotOrder
+	#expect(price.supplierReputation == "DONOTORDER")
+	price.supplierReputationValue = nil
+	#expect(price.supplierReputation == nil)
+
+	price.supplierTaxNPR = "3"
+	#expect(price.isSupplierTaxNPR)
+	price.isSupplierTaxNPR = false
+	#expect(price.supplierTaxNPR == "0")
+}
+
+@Test func encodeProductSupplierPriceBody() async throws {
+	let price = DolibarrProductSupplierPrice(
+		id: "34",
+		productId: "12",
+		supplierProductRef: "SUP-12",
+		supplierDescription: "Box of 10",
+		supplierId: "7",
+		supplierName: "Acme",
+		supplierMinimumQuantity: "10",
+		supplierPrice: "90",
+		supplierUnitPrice: "9",
+		supplierDiscountRate: "5",
+		supplierDiscountAmount: "4.5",
+		supplierTaxRate: "20",
+		supplierTaxNPR: "1",
+		supplierMulticurrencyCode: "USD",
+		supplierMulticurrencyPrice: "99",
+		supplierMulticurrencyRate: "1.1",
+		supplierProductAvailability: "2",
+		deliveryTimeDays: "3",
+		supplierReputation: "FAVORITE",
+		supplierBarcode: "3700000000001",
+		supplierBarcodeTypeId: "2",
+		packaging: "5",
+		supplierPriceStatus: "1"
+	)
+	let data = try JSONEncoder().encode(price)
+	let body = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+	#expect(body["qty"] as? String == "10")
+	#expect(body["buyprice"] as? String == "90")
+	#expect(body["price_base_type"] as? String == "HT")
+	#expect(body["fourn_id"] as? String == "7")
+	#expect(body["availability"] as? String == "2")
+	#expect(body["ref_fourn"] as? String == "SUP-12")
+	#expect(body["tva_tx"] as? String == "20")
+	#expect(body["charges"] as? String == "0")
+	#expect(body["remise_percent"] as? String == "5")
+	#expect(body["remise"] as? String == "4.5")
+	#expect(body["newnpr"] as? Int == 1)
+	#expect(body["delivery_time_days"] as? String == "3")
+	#expect(body["supplier_reputation"] as? String == "FAVORITE")
+	#expect(body["multicurrency_buyprice"] as? String == "99")
+	#expect(body["multicurrency_price_base_type"] as? String == "HT")
+	#expect(body["multicurrency_tx"] as? String == "1.1")
+	#expect(body["multicurrency_code"] as? String == "USD")
+	#expect(body["desc_fourn"] as? String == "Box of 10")
+	#expect(body["barcode"] as? String == "3700000000001")
+	#expect(body["fk_barcode_type"] as? String == "2")
+	// Read-only and path values are not sent
+	for key in ["id", "product_fourn_price_id", "fourn_name", "fourn_unitprice", "packaging", "status", "fourn_multicurrency_code"] {
+		#expect(body[key] == nil, "\(key) should not be encoded")
+	}
+}
+
+@Test func encodeProductSupplierPriceDefaults() async throws {
+	let price = DolibarrProductSupplierPrice(supplierProductRef: "SUP-12", supplierId: "7", supplierMinimumQuantity: "1", supplierPrice: "9", supplierDiscountRate: "0", supplierTaxRate: "20")
+	let data = try JSONEncoder().encode(price)
+	let body = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+	#expect(body["availability"] as? String == "0")
+	#expect(body["remise"] as? String == "0")
+	#expect(body["newnpr"] as? Int == 0)
+	// Sent as null so Dolibarr clears it rather than storing 0
+	#expect(body.keys.contains("delivery_time_days"))
+	#expect(body["delivery_time_days"] is NSNull)
+	#expect(body["supplier_reputation"] as? String == "")
+	// Without a multicurrency price, the price is sent at rate 1 so multicurrency servers keep it
+	#expect(body["multicurrency_buyprice"] as? String == "9")
+	#expect(body["multicurrency_tx"] as? String == "1")
+	#expect(body["multicurrency_code"] == nil)
+	#expect(body["desc_fourn"] as? String == "")
+	#expect(body["fk_barcode_type"] == nil)
 }
 
 @Test func projectAmountValues() async throws {

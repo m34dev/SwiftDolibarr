@@ -33,10 +33,10 @@ import OSLog
 /// ## Overview
 ///
 /// Each event has a ``progress`` percentage that drives its ``status``,
-/// start/end dates, assigned users, and an optional linked element.
+/// start/end dates, assigned users and contacts, and an optional linked element.
 ///
 /// - Note: Requires the **Agenda** module to be activated in Dolibarr.
-/// - SeeAlso: ``DolibarrAgendaEventUserAssigned``
+/// - SeeAlso: ``DolibarrAgendaEventUserAssigned``, ``DolibarrAgendaEventContactAssigned``
 #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 @Observable
 #endif
@@ -134,6 +134,22 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 	/// - Mapped Dolibarr property: **userassigned**
 	public var usersAssigned: [String: DolibarrAgendaEventUserAssigned]?
 
+	/// Agenda event assigned contacts, keyed by contact ID
+	///
+	/// Send the full list when updating an event: Dolibarr replaces all linked contacts with it.
+	/// An empty dictionary removes them all, and `nil` keeps the existing ones.
+	///
+	/// - Mapped Dolibarr property: **socpeopleassigned**
+	public var contactsAssigned: [String: DolibarrAgendaEventContactAssigned]?
+
+	/// Agenda event main contact ID (write-only)
+	///
+	/// Dolibarr does not return it, so it is always `nil` on a decoded event.
+	/// Dolibarr's own event form sets it to the first assigned contact.
+	///
+	/// - Mapped Dolibarr property: **contact_id**
+	public var contactId: String?
+
 	/// Agenda event owner user ID
 	///
 	/// - Mapped Dolibarr property: **userownerid**
@@ -226,6 +242,8 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		case projectId = "fk_project"
 		case priority
 		case usersAssigned = "userassigned"
+		case contactsAssigned = "socpeopleassigned"
+		case contactId = "contact_id"
 		case userOwnerId = "userownerid"
 		case elementId = "elementid"
 		case elementType = "elementtype"
@@ -254,6 +272,8 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		projectId: String? = nil,
 		priority: String? = nil,
 		usersAssigned: [String: DolibarrAgendaEventUserAssigned]? = nil,
+		contactsAssigned: [String: DolibarrAgendaEventContactAssigned]? = nil,
+		contactId: String? = nil,
 		userOwnerId: String? = nil,
 		elementId: String? = nil,
 		elementType: String? = nil,
@@ -283,6 +303,8 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		self.projectId = projectId
 		self.priority = priority
 		self.usersAssigned = usersAssigned
+		self.contactsAssigned = contactsAssigned
+		self.contactId = contactId
 		self.userOwnerId = userOwnerId
 		self.elementId = elementId
 		self.elementType = elementType
@@ -324,6 +346,9 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 			} else {
 				self.usersAssigned = nil
 			}
+			// Dolibarr sends [] instead of {} when no contact is assigned
+			self.contactsAssigned = try? container.decode([String: DolibarrAgendaEventContactAssigned].self, forKey: .contactsAssigned)
+			self.contactId = nil
 			self.userOwnerId = try container.decodeIfPresent(String.self, forKey: .userOwnerId)
 			self.elementId = try container.decodeIfPresent(String.self, forKey: .elementId)
 			self.elementType = try container.decodeIfPresent(String.self, forKey: .elementType)
@@ -365,6 +390,8 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		self.projectId = source.projectId
 		self.priority = source.priority
 		self.usersAssigned = source.usersAssigned
+		self.contactsAssigned = source.contactsAssigned
+		self.contactId = source.contactId
 		self.userOwnerId = source.userOwnerId
 		self.elementId = source.elementId
 		self.elementType = source.elementType
@@ -394,6 +421,8 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		self.projectId = source.projectId
 		self.priority = source.priority
 		self.usersAssigned = source.usersAssigned
+		self.contactsAssigned = source.contactsAssigned
+		self.contactId = source.contactId
 		self.userOwnerId = source.userOwnerId
 		self.elementId = source.elementId
 		self.elementType = source.elementType
@@ -423,6 +452,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		hasher.combine(optional: projectId)
 		hasher.combine(optional: priority)
 		hasher.combine(optional: usersAssigned)
+		hasher.combine(optional: contactsAssigned)
 		hasher.combine(optional: userOwnerId)
 		hasher.combine(optional: elementId)
 		hasher.combine(optional: elementType)
@@ -451,6 +481,7 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		&& projectId == other.projectId
 		&& priority == other.priority
 		&& usersAssigned == other.usersAssigned
+		&& contactsAssigned == other.contactsAssigned
 		&& userOwnerId == other.userOwnerId
 		&& elementId == other.elementId
 		&& elementType == other.elementType
@@ -479,6 +510,8 @@ public final class DolibarrAgendaEvent: CommonBusinessObject {
 		try container.encodeIfPresent(projectId, forKey: .projectId)
 		try container.encodeIfPresentAndNotEmpty(priority, forKey: .priority)
 		try container.encodeIfPresent(usersAssigned, forKey: .usersAssigned)
+		try container.encodeIfPresent(contactsAssigned, forKey: .contactsAssigned)
+		try container.encodeIfPresent(contactId, forKey: .contactId)
 		try container.encodeIfPresentAndNotEmpty(userOwnerId, forKey: .userOwnerId)
 		try container.encodeIfPresent(elementId, forKey: .elementId)
 		try container.encodeIfPresent(elementType, forKey: .elementType)
