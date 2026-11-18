@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org) using the 
 - Product supplier price description, discount amount, charges, NPR tax flag, multicurrency price, unit price and rate, delivery time, reputation, barcode and barcode type, packaging, status, and read-only creation and modification dates
 - `DolibarrSupplierReputation`, with a computed `supplierReputationValue` on product supplier prices
 - Computed numeric values for the new product supplier price fields and the minimum quantity
+- Agenda event assigned contacts, `DolibarrAgendaEvent.contactsAssigned` (`socpeopleassigned`), keyed by contact ID
+  - Send the full list on `PUT /agendaevents/{id}`: Dolibarr replaces all linked contacts with it, an empty dictionary removes them, `nil` keeps them
+- Agenda event write-only main contact ID, `DolibarrAgendaEvent.contactId` (`contact_id`), which Dolibarr does not return
+- `DolibarrAgendaEventContactAssigned`, an alias of `DolibarrAgendaEventUserAssigned`
+- Public `DolibarrAgendaEventUserAssigned.init(id:mandatory:answerStatus:transparency:)`
 
 ### Changed
 - **Breaking:** `DolibarrProductSupplierPrice.supplierMinimumQuanity` renamed to `supplierMinimumQuantity`
@@ -20,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org) using the 
 
 ### Fixed
 - Adding or updating a product supplier price on a server with the multicurrency module stored a price of 0: the multicurrency price, rate and code are now sent
+- `DolibarrAgendaEventUserAssigned.answerStatus` was never decoded or sent: it now maps to `answer_status`
 
 ## [0.73.0] - 2026-11-14
 

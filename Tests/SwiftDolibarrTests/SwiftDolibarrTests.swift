@@ -1495,6 +1495,93 @@ func decodeProjectId(field: String, expected: String?) async throws {
     #expect(other != event)
 }
 
+@Test func agendaEventContactsAssignedDecoding() async throws {
+    let json = """
+    {
+        "id": "1", "ref": "1", "label": "Call", "percentage": "0", "fulldayevent": "0",
+        "datep": 1793228400, "datef": 1793232000,
+        "socpeopleassigned": {
+            "12": { "id": "12", "mandatory": "0", "answer_status": "0", "transparency": "0" },
+            "34": { "id": "34", "mandatory": "0", "answer_status": "0", "transparency": "0" }
+        }
+    }
+    """
+    let event = try JSONDecoder().decode(DolibarrAgendaEvent.self, from: Data(json.utf8))
+
+    #expect(event.contactsAssigned?.keys.sorted() == ["12", "34"])
+    #expect(event.contactsAssigned?["34"]?.id == "34")
+    #expect(event.contactsAssigned?["34"]?.answerStatus == "0")
+    #expect(event.contactId == nil)
+    #expect(DolibarrAgendaEvent(copying: event).contactsAssigned == event.contactsAssigned)
+}
+
+@Test func agendaEventNoContactsAssignedDecoding() async throws {
+    // Dolibarr sends an empty PHP array as [] rather than {}
+    let json = """
+    {
+        "id": "1", "ref": "1", "label": "Call", "percentage": "0", "fulldayevent": "0",
+        "datep": 1793228400, "datef": 1793232000, "socpeopleassigned": []
+    }
+    """
+    let event = try JSONDecoder().decode(DolibarrAgendaEvent.self, from: Data(json.utf8))
+
+    #expect(event.contactsAssigned == nil)
+}
+
+@Test func agendaEventContactsAssignedEncoding() async throws {
+    let event = DolibarrAgendaEvent(
+        label: "Call",
+        contactsAssigned: ["12": DolibarrAgendaEventContactAssigned(id: "12")],
+        contactId: "12"
+    )
+    let data = try JSONEncoder().encode(event)
+    let encoded = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    let contacts = try #require(encoded["socpeopleassigned"] as? [String: [String: Any]])
+
+    // Dolibarr's create() reads the keys and update() reads each "id", so both must be the contact ID
+    #expect(contacts.keys.sorted() == ["12"])
+    #expect(contacts["12"]?["id"] as? String == "12")
+    #expect(contacts["12"]?.count == 1)
+    #expect(encoded["contact_id"] as? String == "12")
+
+    // An empty dictionary is sent to remove all contacts, nil leaves them as they are
+    let cleared = DolibarrAgendaEvent(label: "Call", contactsAssigned: [:])
+    let clearedEncoded = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(cleared)) as? [String: Any])
+    #expect((clearedEncoded["socpeopleassigned"] as? [String: Any])?.isEmpty == true)
+
+    let untouched = DolibarrAgendaEvent(label: "Call")
+    let untouchedEncoded = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(untouched)) as? [String: Any])
+    #expect(untouchedEncoded["socpeopleassigned"] == nil)
+    #expect(untouchedEncoded["contact_id"] == nil)
+}
+
+@Test func agendaEventContactsAssignedEquality() async throws {
+    let event = DolibarrAgendaEvent(label: "Call", contactsAssigned: ["12": DolibarrAgendaEventContactAssigned(id: "12")], id: "1")
+    let copy = DolibarrAgendaEvent(copying: event)
+    #expect(copy == event)
+
+    copy.contactsAssigned?["34"] = DolibarrAgendaEventContactAssigned(id: "34")
+    #expect(copy != event)
+
+    // contact_id is write-only, so it is ignored when comparing with an event decoded from Dolibarr
+    let withContactId = DolibarrAgendaEvent(copying: event)
+    withContactId.contactId = "12"
+    #expect(withContactId == event)
+    #expect(withContactId.contactId == "12")
+}
+
+@Test func agendaEventUserAssignedAnswerStatusRoundTrip() async throws {
+    let json = """
+    { "id": "3", "mandatory": "1", "answer_status": "1", "transparency": "1" }
+    """
+    let user = try JSONDecoder().decode(DolibarrAgendaEventUserAssigned.self, from: Data(json.utf8))
+    #expect(user.answerStatus == "1")
+
+    let encoded = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(user)) as? [String: Any])
+    #expect(encoded["answer_status"] as? String == "1")
+    #expect(encoded["answerStatus"] == nil)
+}
+
 @Test func warehouseProjectIdRoundTrip() async throws {
     let warehouse = DolibarrWarehouse(label: "Main", projectId: "7", id: "3", statusCode: "1")
     let redecoded = try JSONDecoder().decode(DolibarrWarehouse.self, from: JSONEncoder().encode(warehouse))
