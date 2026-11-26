@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.75.1] - 2026-11-26
+
+### Fixed
+- Orders failed to decode when `date` or `date_creation` was a string, e.g. on Dolibarr v20: both are now decoded from a string or a number
+
 ## [0.75.0] - 2026-11-26
 
 ### Added
