@@ -114,6 +114,13 @@ public final class DolibarrContact: CommonBusinessObject, DolibarrPeopleObject, 
 	/// Contact birthday (Unix timestamp)
 	public var birthday: Int?
 
+	/// Contact photo file name (read-only: set by uploading the photo in Dolibarr)
+	///
+	/// The file is in the contact's `photos` directory: download it with the `contact` module part
+	/// and the original file `<id>/photos/<photo>`, or its thumbnail `<id>/photos/thumbs/<name>_small.<ext>`.
+	/// `nil` when the contact has no photo.
+	public var photo: String?
+
 	// Computed
 
 	/// Associated contact status type
@@ -150,6 +157,7 @@ public final class DolibarrContact: CommonBusinessObject, DolibarrPeopleObject, 
 		case phoneMobile = "phone_mobile"
 		case fax
 		case birthday
+		case photo
 	}
 
 	// MARK: - Inits
@@ -172,6 +180,7 @@ public final class DolibarrContact: CommonBusinessObject, DolibarrPeopleObject, 
 		phoneMobile: String? = nil,
 		fax: String? = nil,
 		birthday: Int? = nil,
+		photo: String? = nil,
 		id: String = "",
 		statusCode: String = "",
 		arrayOptions: [String: MultiType]? = nil,
@@ -195,6 +204,7 @@ public final class DolibarrContact: CommonBusinessObject, DolibarrPeopleObject, 
 		self.phoneMobile = phoneMobile
 		self.fax = fax
 		self.birthday = birthday
+		self.photo = photo
 		super.init(
 			id: id,
 			statusCode: statusCode,
@@ -235,6 +245,7 @@ public final class DolibarrContact: CommonBusinessObject, DolibarrPeopleObject, 
 			} else {
 				self.birthday = nil
 			}
+			self.photo = try container.decodeIfPresent(String.self, forKey: .photo).flatMap { $0.isEmpty ? nil : $0 }
 			try super.init(from: decoder)
 			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
@@ -270,6 +281,7 @@ public final class DolibarrContact: CommonBusinessObject, DolibarrPeopleObject, 
         self.phoneMobile = source.phoneMobile
         self.fax = source.fax
         self.birthday = source.birthday
+        self.photo = source.photo
         super.init(copying: source)
     }
     
@@ -293,6 +305,7 @@ public final class DolibarrContact: CommonBusinessObject, DolibarrPeopleObject, 
         self.phoneMobile = source.phoneMobile
         self.fax = source.fax
         self.birthday = source.birthday
+        self.photo = source.photo
         super.copy(source)
     }
 
@@ -316,6 +329,7 @@ public final class DolibarrContact: CommonBusinessObject, DolibarrPeopleObject, 
 		hasher.combine(optional: phoneMobile)
 		hasher.combine(optional: fax)
 		hasher.combine(optional: birthday)
+		hasher.combine(optional: photo)
 		super.hash(into: &hasher)
 	}
 
@@ -338,6 +352,7 @@ public final class DolibarrContact: CommonBusinessObject, DolibarrPeopleObject, 
 		&& phoneMobile == other.phoneMobile
 		&& fax == other.fax
 		&& birthday == other.birthday
+		&& photo == other.photo
 		&& super.isEqual(to: other)
 	}
 

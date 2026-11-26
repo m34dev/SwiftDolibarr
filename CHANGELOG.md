@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.75.0] - 2026-11-26
+
+### Added
+- Document position, `DolibarrDocument.position`, decoded from a string or a number: the order Dolibarr shows an object's files and product photos in, Dolibarr v24+
+- Document cover flag, `DolibarrDocument.cover`, Dolibarr v24+
+- Document MIME type, `DolibarrDocument.contentType` (`content-type`), Dolibarr v23+
+- Read-only third party logo file name, `DolibarrThirdParty.logo`, in the third party's `logos` directory
+- Read-only contact photo file name, `DolibarrContact.photo`, in the contact's `photos` directory
+  - Logo and photo are decoded but never encoded, an empty value decodes as `nil`, and both count in equality and hashing
+
+### Fixed
+- Business objects failed to decode when `entity` was a number: it is now decoded from a string or a number, e.g. an admin user's `0` without multicompany
+
 ## [0.74.0] - 2026-11-18
 
 ### Added

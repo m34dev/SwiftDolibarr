@@ -405,6 +405,82 @@ private func makeContact() -> DolibarrContact {
     #expect(base != (contact as CommonBusinessObject))
 }
 
+@Test func userDecodesNumericOrStringEntity() async throws {
+    // Without multicompany, Dolibarr sets an admin user's entity to the integer 0
+    for (entity, expected) in [("0", "0"), ("\"1\"", "1")] {
+        let json = """
+        { "id": "1", "statut": "1", "admin": "1", "login": "admin", "lastname": "SuperAdmin", "entity": \(entity) }
+        """
+        let user = try JSONDecoder().decode(DolibarrUser.self, from: Data(json.utf8))
+        #expect(user.entityId == expected)
+    }
+}
+
+@Test func thirdPartyDecodesLogoWithoutEncodingIt() async throws {
+    let json = """
+    { "id": "7", "name": "ACME", "status": "1", "logo": "acme.png" }
+    """
+    let thirdParty = try JSONDecoder().decode(DolibarrThirdParty.self, from: Data(json.utf8))
+    #expect(thirdParty.logo == "acme.png")
+
+    let body = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(thirdParty)) as? [String: Any])
+    #expect(body["logo"] == nil)
+}
+
+@Test func thirdPartyDecodesEmptyOrNullLogoAsNil() async throws {
+    for logo in ["\"\"", "null"] {
+        let json = """
+        { "id": "7", "name": "ACME", "status": "1", "logo": \(logo) }
+        """
+        let thirdParty = try JSONDecoder().decode(DolibarrThirdParty.self, from: Data(json.utf8))
+        #expect(thirdParty.logo == nil)
+    }
+}
+
+@Test func thirdPartiesDifferingInLogoAreNotEqual() async throws {
+    let thirdParty = DolibarrThirdParty(name: "ACME", logo: "acme.png", id: "7", statusCode: "1")
+    let copy = DolibarrThirdParty(copying: thirdParty)
+    #expect(copy.logo == "acme.png")
+    #expect(copy == thirdParty)
+
+    copy.logo = "acme-new.png"
+    #expect(copy != thirdParty)
+    #expect(copy.hashValue != thirdParty.hashValue)
+}
+
+@Test func contactDecodesPhotoWithoutEncodingIt() async throws {
+    let json = """
+    { "id": "12", "lastname": "Doe", "status": "1", "photo": "jane.jpg" }
+    """
+    let contact = try JSONDecoder().decode(DolibarrContact.self, from: Data(json.utf8))
+    #expect(contact.photo == "jane.jpg")
+
+    let body = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(contact)) as? [String: Any])
+    #expect(body["photo"] == nil)
+}
+
+@Test func contactDecodesEmptyOrNullPhotoAsNil() async throws {
+    for photo in ["\"\"", "null"] {
+        let json = """
+        { "id": "12", "lastname": "Doe", "status": "1", "photo": \(photo) }
+        """
+        let contact = try JSONDecoder().decode(DolibarrContact.self, from: Data(json.utf8))
+        #expect(contact.photo == nil)
+    }
+}
+
+@Test func contactsDifferingInPhotoAreNotEqual() async throws {
+    let contact = makeContact()
+    contact.photo = "jane.jpg"
+    let copy = DolibarrContact(copying: contact)
+    #expect(copy.photo == "jane.jpg")
+    #expect(copy == contact)
+
+    copy.photo = "jane-new.jpg"
+    #expect(copy != contact)
+    #expect(copy.hashValue != contact.hashValue)
+}
+
 /// Live user permissions `fournisseur` node from Dolibarr v21
 @Test func decodeSupplierUserPermissions() async throws {
     let json = """
@@ -1224,6 +1300,9 @@ private func makeInvoice() -> DolibarrInvoice {
     #expect(document.srcObjectType == "commande_fournisseur")
     #expect(document.srcObjectId == "1")
     #expect(document.share == nil)
+    #expect(document.position == 1)
+    #expect(document.cover == nil)
+    #expect(document.contentType == nil)
 }
 
 /// `GET /documents` response shape from Dolibarr v23 (dol_dir_list row merged with the ECM line)
@@ -1263,6 +1342,8 @@ private func makeInvoice() -> DolibarrInvoice {
     #expect(document.genOrUploaded == "generated")
     #expect(document.srcObjectType == "commande_fournisseur")
     #expect(document.srcObjectId == "1")
+    #expect(document.position == 1)
+    #expect(document.contentType == "application/pdf")
 }
 
 /// Live `GET /documents` response from Dolibarr v24 (supplier order, no `id`, `path`, `fullname` or `src_object_*`)
@@ -1317,6 +1398,9 @@ private func makeInvoice() -> DolibarrInvoice {
     #expect(document.srcObjectType == "")
     #expect(document.srcObjectId == "")
     #expect(document.share == nil)
+    #expect(document.position == 1)
+    #expect(document.cover == nil)
+    #expect(document.contentType == "application/pdf")
 }
 
 /// `GET /documents` response shape from Dolibarr develop (v24 shape plus `date_creation`)
@@ -1346,6 +1430,33 @@ private func makeInvoice() -> DolibarrInvoice {
 
     #expect(document.id == "136")
     #expect(document.filename == "PO2610-0005.pdf")
+    #expect(document.position == nil)
+    #expect(document.contentType == "application/pdf")
+}
+
+/// `GET /documents` item for a product photo, with a numeric position and the cover flag set
+@Test func decodeDocumentWithNumericPositionAndCover() async throws {
+    let json = """
+    {
+        "name": "photo.jpg",
+        "level1name": "PROD-001",
+        "relativename": "photo.jpg",
+        "date": 1793380987,
+        "size": 1024,
+        "type": "file",
+        "ref": "12",
+        "filename": "photo.jpg",
+        "filepath": "produit/PROD-001",
+        "position": 2,
+        "cover": "1",
+        "content-type": "image/jpeg"
+    }
+    """
+    let document = try JSONDecoder().decode(DolibarrDocument.self, from: Data(json.utf8))
+
+    #expect(document.position == 2)
+    #expect(document.cover == "1")
+    #expect(document.contentType == "image/jpeg")
 }
 
 /// `GET /documents` item for a file without an ECM entry (dol_dir_list fields only)
@@ -1370,6 +1481,9 @@ private func makeInvoice() -> DolibarrInvoice {
     #expect(document.path == "")
     #expect(document.fullname == "")
     #expect(document.srcObjectType == "")
+    #expect(document.position == nil)
+    #expect(document.cover == nil)
+    #expect(document.contentType == nil)
 }
 
 /// `GET /documents` item from Dolibarr v24 with the ECM rowid `ref` returned as a number
