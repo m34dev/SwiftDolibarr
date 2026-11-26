@@ -3149,3 +3149,29 @@ private func makeContract() -> DolibarrContract {
         try JSONEncoder().encode(DolibarrTaskTimeSpent(durationSeconds: 60))
     }
 }
+
+/// Dolibarr v20 can return an order's `date` and `date_creation` as strings
+@Test func decodeOrderDatesFromStrings() async throws {
+	let json = """
+	{
+	  "id": "180",
+	  "ref": "CO2411-0180",
+	  "socid": "2",
+	  "statut": "1",
+	  "lines": [],
+	  "total_ht": "0",
+	  "total_tva": "0",
+	  "total_ttc": "0",
+	  "date_creation": "1743773588",
+	  "date": "1743717600",
+	  "date_validation": "",
+	  "delivery_date": ""
+	}
+	"""
+	let order = try JSONDecoder().decode(DolibarrOrder.self, from: Data(json.utf8))
+
+	#expect(order.dateCreation == 1743773588)
+	#expect(order.dateOrder == 1743717600)
+	#expect(order.dateOrdered == Date(timeIntervalSince1970: 1743717600))
+	#expect(order.dateValidation == nil)
+}

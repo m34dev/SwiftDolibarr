@@ -245,8 +245,8 @@ public final class DolibarrOrder: CommonCommercialTransactionObject {
 			#endif
 			let container = try decoder.container(keyedBy: CodingKeys.self)
 			self.clientRef = try container.decodeIfPresent(String.self, forKey: .clientRef)
-			self.dateCreation = try container.decodeIfPresent(Int.self, forKey: .dateCreation)
-			self.dateOrder = try container.decodeIfPresent(Int.self, forKey: .dateOrder)
+			self.dateCreation = try container.decodeIfPresent(MultiType.self, forKey: .dateCreation)?.intValue
+			self.dateOrder = try container.decodeIfPresent(MultiType.self, forKey: .dateOrder)?.intValue
 			self.dateValidation = try container.decodeIfPresent(MultiType.self, forKey: .dateValidation)?.intValue
 			self.deliveryDate = try container.decodeIfPresent(MultiType.self, forKey: .deliveryDate)?.intValue
 			self.pdfModel = try container.decodeIfPresent(String.self, forKey: .pdfModel)
