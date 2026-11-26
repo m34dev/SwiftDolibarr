@@ -46,6 +46,16 @@ public final class DolibarrDocument: Hashable, Codable, DolibarrObject {
     public var srcObjectType: String
     public var srcObjectId: String
     public var share: String?
+    /// Position of the file among the object's files, which sets the order of product photos (read-only), Dolibarr v24+
+    ///
+    /// `nil` for files without an ECM entry or before Dolibarr v24.
+    public var position: Int?
+    /// Cover flag of the file (read-only), Dolibarr v24+
+    public var cover: String?
+    /// MIME type of the file (read-only), Dolibarr v24+
+    ///
+    /// - Mapped Dolibarr property: **content-type**
+    public var contentType: String?
 
     // MARK: - Enums
 
@@ -65,6 +75,9 @@ public final class DolibarrDocument: Hashable, Codable, DolibarrObject {
         case srcObjectType = "src_object_type"
         case srcObjectId = "src_object_id"
         case share
+        case position
+        case cover
+        case contentType = "content-type"
         case ref
     }
 
@@ -85,7 +98,10 @@ public final class DolibarrDocument: Hashable, Codable, DolibarrObject {
         genOrUploaded: String = "",
         srcObjectType: String = "",
         srcObjectId: String = "",
-        share: String? = nil
+        share: String? = nil,
+        position: Int? = nil,
+        cover: String? = nil,
+        contentType: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -102,6 +118,9 @@ public final class DolibarrDocument: Hashable, Codable, DolibarrObject {
         self.srcObjectType = srcObjectType
         self.srcObjectId = srcObjectId
         self.share = share
+        self.position = position
+        self.cover = cover
+        self.contentType = contentType
     }
 
     public init(from decoder: any Decoder) throws {
@@ -130,6 +149,10 @@ public final class DolibarrDocument: Hashable, Codable, DolibarrObject {
             self.filepath = filepath
             self.genOrUploaded = try container.decodeIfPresent(String.self, forKey: .genOrUploaded) ?? ""
             self.share = try container.decodeIfPresent(String.self, forKey: .share)
+            // ECM fields returned since Dolibarr v24, the position as a string
+            self.position = try container.decodeIfPresent(MultiType.self, forKey: .position)?.intValue
+            self.cover = try container.decodeIfPresent(MultiType.self, forKey: .cover)?.stringValue
+            self.contentType = try container.decodeIfPresent(String.self, forKey: .contentType)
             // ECM fields no longer returned since Dolibarr v24
             self.srcObjectType = try container.decodeIfPresent(String.self, forKey: .srcObjectType) ?? ""
             self.srcObjectId = try container.decodeIfPresent(String.self, forKey: .srcObjectId) ?? ""

@@ -165,6 +165,13 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
 	/// - Mapped Dolibarr property: **town**
 	public var city: String?
 
+	/// Third party logo file name (read-only: set by uploading the logo in Dolibarr)
+	///
+	/// The file is in the third party's `logos` directory: download it with the `societe` module part
+	/// and the original file `<id>/logos/<logo>`, or its thumbnail `<id>/logos/thumbs/<name>_small.<ext>`.
+	/// `nil` when the third party has no logo.
+	public var logo: String?
+
 	// Computed
 
 	/// Third party website URL, computed from ``url``
@@ -214,6 +221,7 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
         case address
         case zipCode = "zip"
         case city = "town"
+        case logo
     }
 
     // MARK: - Inits
@@ -246,6 +254,7 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
         address: String? = nil,
         zipCode: String? = nil,
         city: String? = nil,
+        logo: String? = nil,
         id: String = "",
         statusCode: String = "",
         arrayOptions: [String: MultiType]? = nil,
@@ -279,6 +288,7 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
         self.address = address
         self.zipCode = zipCode
         self.city = city
+        self.logo = logo
 		super.init(
 			id: id, statusCode: statusCode,
 			arrayOptions: arrayOptions,
@@ -324,6 +334,7 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
             self.address = try container.decodeIfPresent(String.self, forKey: .address)
 			self.zipCode = try container.decodeIfPresent(String.self, forKey: .zipCode)
 			self.city = try container.decodeIfPresent(String.self, forKey: .city)
+			self.logo = try container.decodeIfPresent(String.self, forKey: .logo).flatMap { $0.isEmpty ? nil : $0 }
 			try super.init(from: decoder)
             #if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
             Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
@@ -369,6 +380,7 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
         self.address = source.address
         self.zipCode = source.zipCode
         self.city = source.city
+        self.logo = source.logo
         super.init(copying: source)
     }
     
@@ -402,6 +414,7 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
         self.address = source.address
         self.zipCode = source.zipCode
         self.city = source.city
+        self.logo = source.logo
         super.copy(source)
     }
 
@@ -435,6 +448,7 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
 		hasher.combine(optional: address)
 		hasher.combine(optional: zipCode)
 		hasher.combine(optional: city)
+		hasher.combine(optional: logo)
 		super.hash(into: &hasher)
     }
 
@@ -467,6 +481,7 @@ public final class DolibarrThirdParty: CommonBusinessObject, DolibarrPeopleObjec
 		&& address == other.address
 		&& zipCode == other.zipCode
 		&& city == other.city
+		&& logo == other.logo
 		&& super.isEqual(to: other)
     }
 

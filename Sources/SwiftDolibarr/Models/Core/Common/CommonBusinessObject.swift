@@ -232,7 +232,7 @@ public class CommonBusinessObject: Equatable, Codable, DolibarrBusinessObject {
 			} else {
 				self.statusCode = ""
 			}
-			self.entityId = try container.decodeIfPresent(String.self, forKey: .entityId)
+			self.entityId = try container.decodeIfPresent(MultiType.self, forKey: .entityId)?.stringValue
 			if let dictArrayOptions = try? container.decode([String: MultiType].self, forKey: .arrayOptions) {
 				self.arrayOptions = Dictionary(
 					uniqueKeysWithValues: dictArrayOptions.map { key, value in
