@@ -3850,3 +3850,33 @@ private func makeTicket() throws -> DolibarrTicket {
     let redecoded = try decoder.decode(DolibarrUserPermissions.self, from: JSONEncoder().encode(permissions))
     #expect(redecoded == permissions)
 }
+
+/// Dolibarr v25 renamed an expense report's `date_create` to `date_creation`
+@Test func decodeExpenseReportWithoutDateCreate() async throws {
+	let json = """
+	{
+	  "id": "12",
+	  "ref": "ER2611-0012",
+	  "statut": "0",
+	  "date_debut": 1743717600,
+	  "date_fin": 1743804000,
+	  "date_creation": 1743773588,
+	  "date_modif": 1743773600,
+	  "date_valid": "",
+	  "date_approve": "",
+	  "date_refuse": "",
+	  "date_cancel": "",
+	  "fk_user_author": "1",
+	  "paid": "0",
+	  "total_ht": "0.00000000",
+	  "total_tva": "0.00000000",
+	  "total_ttc": "0.00000000",
+	  "lines": []
+	}
+	"""
+	let expenseReport = try JSONDecoder().decode(DolibarrExpenseReport.self, from: Data(json.utf8))
+
+	#expect(expenseReport.dateCreate == nil)
+	#expect(expenseReport.dateCreated == Date(timeIntervalSince1970: 1743773588))
+	#expect(expenseReport.dateModified == Date(timeIntervalSince1970: 1743773600))
+}

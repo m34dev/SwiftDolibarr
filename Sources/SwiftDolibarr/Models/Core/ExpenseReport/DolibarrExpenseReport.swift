@@ -65,7 +65,7 @@ public final class DolibarrExpenseReport: CommonBusinessObject {
 
 	/// Expense report creation date (Unix timestamp)
 	///
-	/// - Mapped Dolibarr property: **date_create**
+	/// - Mapped Dolibarr property: **date_create**, up to Dolibarr v24. Dolibarr v25+ returns **date_creation**, read by ``dateCreated``
 	public var dateCreate: Int?
 
 	/// Expense report modification date (Unix timestamp)
@@ -320,7 +320,7 @@ public final class DolibarrExpenseReport: CommonBusinessObject {
             self.ref = try container.decode(String.self, forKey: .ref)
             self.dateStart = try container.decode(Int.self, forKey: .dateStart)
             self.dateEnd = try container.decode(Int.self, forKey: .dateEnd)
-            self.dateCreate = try container.decode(MultiType.self, forKey: .dateCreate).intValue
+            self.dateCreate = try container.decodeIfPresent(MultiType.self, forKey: .dateCreate)?.intValue
             self.dateModify = try container.decode(MultiType.self, forKey: .dateModify).intValue
             self.dateValidate = try container.decode(MultiType.self, forKey: .dateValidate).intValue
             self.dateApprove = try container.decode(MultiType.self, forKey: .dateApprove).intValue
