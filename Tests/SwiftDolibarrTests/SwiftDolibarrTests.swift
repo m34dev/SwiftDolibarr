@@ -1880,6 +1880,36 @@ func decodeProjectId(field: String, expected: String?) async throws {
     #expect(keepingStatus(of: contract, in: redecoded) == contract)
 }
 
+@Test func contractLineExpired() async throws {
+    let past = Int(Date().timeIntervalSince1970) - 86_400
+    let future = Int(Date().timeIntervalSince1970) + 86_400
+
+    // Open with a planned end date in the past: expired, status stays open
+    let expired = DolibarrContractLine(statusCode: "4", dateEnd: past)
+    #expect(expired.isExpired)
+    #expect(expired.status == .contractLineOpen)
+
+    // Open with a future or no planned end date
+    #expect(!DolibarrContractLine(statusCode: "4", dateEnd: future).isExpired)
+    #expect(!DolibarrContractLine(statusCode: "4").isExpired)
+
+    // Not open: never expired, even with a past end date
+    #expect(!DolibarrContractLine(statusCode: "0", dateEnd: past).isExpired)
+    #expect(!DolibarrContractLine(statusCode: "5", dateEnd: past).isExpired)
+
+    // Decoded open line with a past planned end date, as Dolibarr sends it
+    let json = """
+    {
+        "id": "2", "rang": "1", "fk_contrat": "1", "statut": "4", "status": "4",
+        "tva_tx": "0.0000", "subprice": "0.00000000", "remise_percent": "0",
+        "total_ht": "0.00000000", "total_tva": "0.00000000", "total_ttc": "0.00000000",
+        "qty": "1", "date_end": "\(past)", "date_end_real": ""
+    }
+    """
+    let decoded = try JSONDecoder().decode(DolibarrContractLine.self, from: Data(json.utf8))
+    #expect(decoded.isExpired)
+}
+
 /// Live contract list from Dolibarr v24, trimmed to mapped and representative keys
 @Test func decodeLiveContractsV24() async throws {
     let json = """
@@ -3174,4 +3204,649 @@ private func makeContract() -> DolibarrContract {
 	#expect(order.dateOrder == 1743717600)
 	#expect(order.dateOrdered == Date(timeIntervalSince1970: 1743717600))
 	#expect(order.dateValidation == nil)
+}
+
+// MARK: - Payments
+
+/// `GET /invoices/{id}/payments` response on Dolibarr v21+: a payment and a credit note used on the invoice
+@Test func decodeInvoicePaymentEntries() async throws {
+    let json = """
+    [
+        { "amount": "50.00000000", "type": "CHQ", "typeline": "payment", "date": "2026-11-20 12:00:00", "num": "0001234", "ref": "PAY2611-0001", "ref_ext": "", "fk_bank_line": "12" },
+        { "amount": "20.00000000", "type": "(CREDIT_NOTE)", "typeline": "discount", "date": "2026-11-21 09:30:00", "num": "", "ref": "AV2611-0001" }
+    ]
+    """
+    let payments = try JSONDecoder().decode([DolibarrPayment].self, from: Data(json.utf8))
+
+    #expect(payments.count == 2)
+    let payment = payments[0]
+    #expect(payment.id == "payment-PAY2611-0001")
+    #expect(payment.ref == "PAY2611-0001")
+    #expect(payment.refExt == nil)
+    #expect(payment.lineType == .payment)
+    #expect(!payment.isDiscount)
+    // 2026-11-20 12:00:00 GMT
+    #expect(payment.dateTimestamp == 1795176000)
+    #expect(payment.date == Date(timeIntervalSince1970: 1795176000))
+    #expect(payment.amount == "50.00000000")
+    #expect(payment.amountValue == 50)
+    #expect(payment.typeCode == "CHQ")
+    #expect(payment.number == "0001234")
+    #expect(payment.bankLineId == "12")
+    #expect(payment.accountId == nil)
+
+    let creditNote = payments[1]
+    #expect(creditNote.id == "discount-AV2611-0001")
+    #expect(creditNote.isDiscount)
+    #expect(creditNote.typeCode == "(CREDIT_NOTE)")
+    #expect(creditNote.number == nil)
+    #expect(creditNote.bankLineId == nil)
+}
+
+/// `GET /supplierinvoices/{id}/payments` on Dolibarr v20: no `typeline`, numbers as numbers
+@Test func decodeSupplierInvoicePaymentEntryWithoutLineType() async throws {
+    let json = """
+    { "amount": 120.5, "type": "VIR", "date": "2026-11-02", "num": null, "ref": "SPAY2611-0003", "fk_bank_line": 0 }
+    """
+    let payment = try JSONDecoder().decode(DolibarrPayment.self, from: Data(json.utf8))
+
+    #expect(payment.id == "payment-SPAY2611-0003")
+    #expect(payment.lineType == nil)
+    #expect(!payment.isDiscount)
+    // 2026-11-02 00:00:00 GMT
+    #expect(payment.dateTimestamp == 1793577600)
+    #expect(payment.amountValue == 120.5)
+    #expect(payment.typeCode == "VIR")
+    #expect(payment.number == nil)
+    #expect(payment.bankLineId == nil)
+}
+
+/// `GET /paiements/{id}` response on Dolibarr v23+, trimmed to mapped and representative keys
+@Test func decodeClientPayment() async throws {
+    let json = """
+    {
+        "id": "7",
+        "ref": "PAY2611-0001",
+        "ref_ext": null,
+        "date": 1795176000,
+        "datepaye": 1795176000,
+        "amount": "50.00000000",
+        "montant": "50.00000000",
+        "multicurrency_amount": "50.00000000",
+        "num_payment": "0001234",
+        "note_private": "Paid at the counter",
+        "type_label": "Cheque",
+        "type_code": "CHQ",
+        "statut": "0",
+        "ext_payment_id": null,
+        "ext_payment_site": null,
+        "bank_account": "1",
+        "fk_account": "1",
+        "bank_line": "12",
+        "paiementid": null,
+        "array_options": []
+    }
+    """
+    let payment = try JSONDecoder().decode(DolibarrPayment.self, from: Data(json.utf8))
+
+    #expect(payment.id == "7")
+    #expect(payment.ref == "PAY2611-0001")
+    #expect(payment.refExt == nil)
+    #expect(payment.dateTimestamp == 1795176000)
+    #expect(payment.amountValue == 50)
+    #expect(payment.multicurrencyAmountValue == 50)
+    #expect(payment.number == "0001234")
+    #expect(payment.notePrivate == "Paid at the counter")
+    #expect(payment.typeCode == "CHQ")
+    #expect(payment.typeLabel == "Cheque")
+    #expect(payment.status == "0")
+    #expect(payment.accountId == "1")
+    #expect(payment.bankLineId == "12")
+    #expect(payment.externalPaymentId == nil)
+    #expect(payment.lineType == nil)
+}
+
+@Test func encodeClientInvoicePaymentBody() async throws {
+    let payment = DolibarrPayment(
+        dateTimestamp: 1795176000,
+        amount: "49.99",
+        number: "0001234",
+        notePrivate: "Paid at the counter",
+        accountId: "1",
+        invoiceId: "42",
+        invoiceKind: .invoice,
+        paymentTypeId: "7",
+        closePaidInvoices: true,
+        chequeIssuer: "John Doe",
+        chequeBank: "Bank"
+    )
+
+    let data = try JSONEncoder().encode(payment)
+    let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    #expect(Set(object.keys) == ["arrayofamounts", "datepaye", "paymentid", "closepaidinvoices", "accountid", "num_payment", "comment", "chqemetteur", "chqbank", "accepthigherpayment"])
+    let amounts = try #require(object["arrayofamounts"] as? [String: [String: String]])
+    #expect(amounts == ["42": ["amount": "49.99", "multicurrency_amount": ""]])
+    #expect(object["datepaye"] as? String == "1795176000")
+    #expect(object["paymentid"] as? Int == 7)
+    #expect(object["closepaidinvoices"] as? String == "yes")
+    #expect(object["accountid"] as? Int == 1)
+    #expect(object["num_payment"] as? String == "0001234")
+    #expect(object["comment"] as? String == "Paid at the counter")
+    #expect(object["chqemetteur"] as? String == "John Doe")
+    #expect(object["chqbank"] as? String == "Bank")
+    #expect(object["accepthigherpayment"] as? Bool == false)
+}
+
+@Test func encodeSupplierInvoicePaymentBody() async throws {
+    let payment = DolibarrPayment(
+        refExt: "EXT-1",
+        dateTimestamp: 1795176000,
+        amount: "120.50",
+        accountId: "2",
+        invoiceId: "9",
+        invoiceKind: .supplierInvoice,
+        paymentTypeId: "2",
+        acceptHigherPayment: true
+    )
+
+    let data = try JSONEncoder().encode(payment)
+    let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    #expect(Set(object.keys) == ["amount", "datepaye", "payment_mode_id", "closepaidinvoices", "accountid"])
+    #expect(object["amount"] as? Double == 120.5)
+    #expect(object["datepaye"] as? Int == 1795176000)
+    #expect(object["payment_mode_id"] as? Int == 2)
+    #expect(object["closepaidinvoices"] as? String == "no")
+    #expect(object["accountid"] as? Int == 2)
+}
+
+@Test func encodePaymentWithMissingFieldsFails() async throws {
+    let complete = DolibarrPayment(dateTimestamp: 1795176000, amount: "10", accountId: "1", invoiceId: "42", paymentTypeId: "7")
+    _ = try JSONEncoder().encode(complete)
+
+    let invalid: [(DolibarrPayment) -> Void] = [
+        { $0.invoiceId = "" },
+        { $0.dateTimestamp = nil },
+        { $0.amount = "" },
+        { $0.amount = "0" },
+        { $0.amount = "-5" },
+        { $0.amount = "abc" },
+        { $0.paymentTypeId = nil },
+        { $0.paymentTypeId = "0" },
+        { $0.accountId = nil },
+        { $0.accountId = "0" }
+    ]
+    for change in invalid {
+        let payment = DolibarrPayment(copying: complete)
+        change(payment)
+        #expect(throws: EncodingError.self) {
+            try JSONEncoder().encode(payment)
+        }
+    }
+}
+
+@Test func paymentCopyIsEqualWithSameHash() async throws {
+    let payment = DolibarrPayment(id: "7", ref: "PAY2611-0001", amount: "50", typeCode: "CHQ", accountId: "1")
+    let copy = DolibarrPayment(copying: payment)
+    #expect(copy == payment)
+    #expect(copy.hashValue == payment.hashValue)
+
+    copy.amount = "60"
+    #expect(copy != payment)
+    #expect(copy.hashValue != payment.hashValue)
+
+    payment.copy(copy)
+    #expect(copy == payment)
+}
+
+/// `GET /bankaccounts` entry on Dolibarr v24, trimmed to mapped and representative keys
+@Test func decodeBankAccount() async throws {
+    let json = """
+    {
+        "id": "1",
+        "ref": "BANK1",
+        "label": "Main account",
+        "type": "1",
+        "courant": "1",
+        "bank": "My Bank",
+        "clos": "0",
+        "status": "0",
+        "currency_code": "EUR",
+        "iban": "FR7600000000000000000000000",
+        "balance": 1520.35
+    }
+    """
+    let account = try JSONDecoder().decode(DolibarrBankAccount.self, from: Data(json.utf8))
+
+    #expect(account.id == "1")
+    #expect(account.ref == "BANK1")
+    #expect(account.label == "Main account")
+    #expect(account.type == .current)
+    #expect(!account.isClosed)
+    #expect(account.currencyCode == "EUR")
+    #expect(account.bank == "My Bank")
+    #expect(account.balanceValue == 1520.35)
+
+    let closedCash = try JSONDecoder().decode(DolibarrBankAccount.self, from: Data(#"{ "id": 3, "ref": "CASH", "label": "Till", "courant": 2, "clos": 1, "bank": "" }"#.utf8))
+    #expect(closedCash.id == "3")
+    #expect(closedCash.type == .cash)
+    #expect(closedCash.isClosed)
+    #expect(closedCash.bank == nil)
+    #expect(closedCash.balance == nil)
+
+    let redecoded = try JSONDecoder().decode(DolibarrBankAccount.self, from: JSONEncoder().encode(account))
+    #expect(redecoded == account)
+}
+
+/// User permissions `banque` node, only returned with the Banque module
+@Test func decodeBankUserPermissions() async throws {
+    let json = """
+    {
+        "user": {
+            "user": {"lire": 1},
+            "self": {"creer": 1},
+            "user_advance": {"readperms": 1},
+            "self_advance": {"readperms": 1},
+            "group_advance": {"read": 1}
+        },
+        "facture": {
+            "lire": 1,
+            "paiement": 1
+        },
+        "banque": {
+            "lire": 1,
+            "modifier": 1,
+            "cheque": 1
+        }
+    }
+    """
+    let decoder = JSONDecoder()
+    let permissions = try decoder.decode(DolibarrUserPermissions.self, from: Data(json.utf8))
+    let bank = try #require(permissions.bank)
+
+    #expect(bank.read == 1)
+    #expect(bank.modify == 1)
+    #expect(bank.configure == nil)
+    #expect(bank.cheque == 1)
+    #expect(permissions.facture?.paiement == 1)
+
+    let redecoded = try decoder.decode(DolibarrUserPermissions.self, from: JSONEncoder().encode(permissions))
+    #expect(redecoded == permissions)
+}
+
+/// `GET /invoices/{id}` adds payment totals, which are never sent back
+@Test func decodeInvoicePaymentTotals() async throws {
+    let json = """
+    {
+        "id": "42",
+        "ref": "FA2611-0042",
+        "socid": "7",
+        "statut": "1",
+        "type": "0",
+        "paye": "0",
+        "date": 1795089600,
+        "lines": [],
+        "total_ht": "100.00000000",
+        "total_tva": "20.00000000",
+        "total_ttc": "120.00000000",
+        "totalpaid": 50,
+        "totalcreditnotes": 20.5,
+        "totaldeposits": "0",
+        "remaintopay": "49.5"
+    }
+    """
+    let invoice = try JSONDecoder().decode(DolibarrInvoice.self, from: Data(json.utf8))
+
+    #expect(invoice.totalPaidValue == 50)
+    #expect(invoice.totalCreditNotesValue == 20.5)
+    #expect(invoice.totalDepositsValue == 0)
+    #expect(invoice.remainToPay == "49.5")
+    #expect(invoice.remainToPayValue == 49.5)
+
+    let body = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(invoice)) as? [String: Any])
+    #expect(body["totalpaid"] == nil)
+    #expect(body["totalcreditnotes"] == nil)
+    #expect(body["totaldeposits"] == nil)
+    #expect(body["remaintopay"] == nil)
+
+    let copy = DolibarrInvoice(copying: invoice)
+    #expect(copy == invoice)
+    copy.remainToPay = "0"
+    #expect(copy != invoice)
+    #expect(copy.hashValue != invoice.hashValue)
+}
+
+// MARK: - Tickets
+
+/// `GET /tickets/1` shaped like a MySQL server: numbers as strings, unset dates as `""`, contact IDs only
+private let ticketJSON = """
+{
+    "id": "1",
+    "entity": "1",
+    "ref": "TS2611-0001",
+    "track_id": "aB3dE5gH7jK9mN1p",
+    "fk_soc": "7",
+    "socid": "7",
+    "fk_project": "3",
+    "fk_contract": null,
+    "fk_user_create": "1",
+    "fk_user_assign": "2",
+    "origin_email": "",
+    "subject": "Printer not working",
+    "message": "<p>The printer shows an error.</p>",
+    "status": "3",
+    "fk_statut": "3",
+    "resolution": null,
+    "progress": "40",
+    "timing": null,
+    "type_code": "ISSUE",
+    "category_code": "OTHER",
+    "severity_code": "HIGH",
+    "type_label": "Issue",
+    "category_label": "Other",
+    "severity_label": "High",
+    "datec": 1794610800,
+    "date_creation": 1794610800,
+    "date_read": 1794614400,
+    "date_validation": 1794614400,
+    "date_last_msg_sent": "",
+    "date_close": "",
+    "tms": 1794618000,
+    "date_modification": 1794618000,
+    "last_main_doc": null,
+    "array_options": {"options_channel": "phone"},
+    "contacts_ids": ["4", 5],
+    "contacts_ids_internal": ["2"],
+    "linkedObjectsIds": {"commande": {"12": "8"}},
+    "messages": [
+        {
+            "id": "31",
+            "fk_user_action": "2",
+            "fk_user_action_socid": null,
+            "fk_user_action_string": "Alice Martin",
+            "datec": 1794618000,
+            "datep": 1794618000,
+            "subject": "Printer not working",
+            "message": "<p>Please restart it.</p>",
+            "private": 1
+        },
+        {
+            "id": "30",
+            "fk_user_action": null,
+            "fk_user_action_socid": "",
+            "fk_user_action_string": "",
+            "datec": 1794610800,
+            "datep": 1794610800,
+            "subject": "Ticket TS2611-0001 created",
+            "message": "<p>The printer shows an error.</p>",
+            "private": 0
+        }
+    ]
+}
+"""
+
+private func makeTicket() throws -> DolibarrTicket {
+    try JSONDecoder().decode(DolibarrTicket.self, from: Data(ticketJSON.utf8))
+}
+
+@Test func decodeTicket() async throws {
+    let ticket = try makeTicket()
+
+    #expect(ticket.id == "1")
+    #expect(ticket.ref == "TS2611-0001")
+    #expect(ticket.trackId == "aB3dE5gH7jK9mN1p")
+    #expect(ticket.thirdPartyId == "7")
+    #expect(ticket.projectId == "3")
+    #expect(ticket.contractId == nil)
+    #expect(ticket.userCreateId == "1")
+    #expect(ticket.createdByUserId == "1")
+    #expect(ticket.userAssignId == "2")
+    #expect(ticket.originEmail == nil)
+    #expect(ticket.subject == "Printer not working")
+    #expect(ticket.message == "<p>The printer shows an error.</p>")
+    #expect(ticket.status == .ticketInProgress)
+    #expect(ticket.isClosed == false)
+    #expect(ticket.progress == 40)
+    #expect(ticket.typeCode == "ISSUE")
+    #expect(ticket.typeLabel == "Issue")
+    #expect(ticket.categoryCode == "OTHER")
+    #expect(ticket.severityCode == "HIGH")
+    #expect(ticket.severityLabel == "High")
+    #expect(ticket.dateCreated == Date(timeIntervalSince1970: 1794610800))
+    #expect(ticket.dateRead == Date(timeIntervalSince1970: 1794614400))
+    #expect(ticket.dateModified == Date(timeIntervalSince1970: 1794618000))
+    #expect(ticket.dateLastMessageSent == nil)
+    #expect(ticket.dateClosed == nil)
+    #expect(ticket.notePublic == nil)
+    #expect(ticket.arrayOptions?["channel"] == .string("phone"))
+    #expect(ticket.externalContactIds == ["4", "5"])
+    #expect(ticket.internalContactIds == ["2"])
+    #expect(ticket.linkedObjectsIds?["commande"]?["12"] == "8")
+
+    let messages = try #require(ticket.messages)
+    #expect(messages.count == 2)
+    #expect(messages[0].id == "31")
+    #expect(messages[0].authorUserId == "2")
+    #expect(messages[0].authorName == "Alice Martin")
+    #expect(messages[0].isPrivate)
+    #expect(messages[0].date == Date(timeIntervalSince1970: 1794618000))
+    #expect(messages[0].trackId == nil)
+    #expect(messages[1].authorUserId == nil)
+    #expect(messages[1].authorThirdPartyId == nil)
+    #expect(messages[1].authorName == nil)
+    #expect(messages[1].isPrivate == false)
+}
+
+/// `GET /tickets` list entry: no messages, no contacts, `socid` only, unset codes and dates
+@Test func decodeTicketListShape() async throws {
+    let json = """
+    {
+        "id": "2", "ref": "TS2611-0002", "track_id": "zZ", "socid": "9", "fk_project": "0",
+        "fk_user_assign": null, "subject": "Question", "message": "",
+        "status": "0", "progress": null, "type_code": "", "category_code": null,
+        "datec": "", "date_read": "", "date_close": 1794610800
+    }
+    """
+    let ticket = try JSONDecoder().decode(DolibarrTicket.self, from: Data(json.utf8))
+
+    #expect(ticket.id == "2")
+    #expect(ticket.thirdPartyId == "9")
+    #expect(ticket.projectId == nil)
+    #expect(ticket.userAssignId == nil)
+    #expect(ticket.status == .ticketNotRead)
+    #expect(ticket.progress == nil)
+    #expect(ticket.typeCode == nil)
+    #expect(ticket.dateRead == nil)
+    #expect(ticket.dateClosed == Date(timeIntervalSince1970: 1794610800))
+    #expect(ticket.messages == nil)
+}
+
+/// Dolibarr v20 messages have no `datep` nor `subject`
+@Test func decodeTicketMessageV20Shape() async throws {
+    let json = """
+    { "id": "5", "fk_user_action": "1", "fk_user_action_socid": null, "fk_user_action_string": "Admin", "message": "Hello", "datec": 1794610800, "private": "0" }
+    """
+    let message = try JSONDecoder().decode(DolibarrTicketMessage.self, from: Data(json.utf8))
+
+    #expect(message.dateEvent == nil)
+    #expect(message.subject == nil)
+    #expect(message.date == Date(timeIntervalSince1970: 1794610800))
+    #expect(message.isPrivate == false)
+}
+
+@Test func ticketStatusesUseTheirOwnCodes() async throws {
+    #expect(DolibarrObjectStatus.tickets.map(\.code) == ["0", "1", "2", "3", "5", "7", "8", "9"])
+    #expect(DolibarrObjectStatus.tickets.allSatisfy { $0.domain == .ticket })
+    #expect(DolibarrTicket(statusCode: "8").isClosed)
+    #expect(DolibarrTicket(statusCode: "9").isClosed)
+    #expect(DolibarrTicket(statusCode: "4").status == .unknown)
+}
+
+@Test func ticketRoundTrip() async throws {
+    let ticket = try makeTicket()
+    let encoder = JSONEncoder()
+    let decoder = JSONDecoder()
+    let redecoded = try decoder.decode(DolibarrTicket.self, from: encoder.encode(ticket))
+
+    // Read-only values are not encoded
+    #expect(redecoded.statusCode == "")
+    #expect(redecoded.trackId == "")
+    #expect(redecoded.messages == nil)
+    #expect(redecoded.typeLabel == nil)
+    #expect(redecoded.userAssignId == nil)
+    #expect(redecoded.subject == ticket.subject)
+    #expect(redecoded.message == ticket.message)
+    #expect(redecoded.thirdPartyId == ticket.thirdPartyId)
+    #expect(redecoded.projectId == ticket.projectId)
+    #expect(redecoded.typeCode == ticket.typeCode)
+    #expect(redecoded.categoryCode == ticket.categoryCode)
+    #expect(redecoded.severityCode == ticket.severityCode)
+    #expect(redecoded.progress == ticket.progress)
+    #expect(redecoded.arrayOptions == ticket.arrayOptions)
+}
+
+@Test func ticketCreateBody() async throws {
+    let ticket = DolibarrTicket(
+        subject: "Printer not working",
+        message: "<p>Error</p>",
+        thirdPartyId: "7",
+        userAssignId: "2",
+        typeCode: "ISSUE",
+        progress: 150,
+        statusCode: "3"
+    )
+    let body = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(ticket)) as? [String: Any])
+
+    #expect(body["status"] == nil)
+    #expect(body["fk_statut"] == nil)
+    #expect(body["id"] == nil)
+    #expect(body["ref"] == nil)
+    #expect(body["track_id"] == nil)
+    #expect(body["messages"] == nil)
+    #expect(body["socid"] as? String == "7")
+    #expect(body["fk_soc"] as? String == "7")
+    #expect(body["fk_user_assign"] as? String == "2")
+    #expect(body["type_code"] as? String == "ISSUE")
+    #expect(body["progress"] as? Int == 100)
+}
+
+@Test func ticketUpdateBodyLeavesOutAssignedUser() async throws {
+    let ticket = try makeTicket()
+    ticket.thirdPartyId = nil
+    let body = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(ticket)) as? [String: Any])
+
+    #expect(body["id"] as? String == "1")
+    #expect(body["fk_user_assign"] == nil)
+    #expect(body["status"] == nil)
+    #expect(body["date_close"] == nil)
+    #expect(body["date_read"] == nil)
+    // A removed third party is sent empty, so Dolibarr unlinks it
+    #expect(body["socid"] as? String == "")
+    #expect(body["fk_soc"] as? String == "")
+}
+
+@Test func ticketCopyIsEqualWithSameHash() async throws {
+    let ticket = try makeTicket()
+    let copy = DolibarrTicket(copying: ticket)
+    #expect(copy == ticket)
+    #expect(copy.hashValue == ticket.hashValue)
+    #expect(copy.messages?.first !== ticket.messages?.first)
+
+    copy.messages?[0].message = "Edited"
+    #expect(copy != ticket)
+    #expect(ticket.messages?[0].message == "<p>Please restart it.</p>")
+
+    let other = DolibarrTicket()
+    other.copy(ticket)
+    #expect(other == ticket)
+}
+
+@Test func ticketsDifferingInAFieldAreNotEqual() async throws {
+    let ticket = try makeTicket()
+    let other = DolibarrTicket(copying: ticket)
+    other.severityCode = "LOW"
+    #expect(other != ticket)
+    #expect(other.hashValue != ticket.hashValue)
+}
+
+@Test func ticketNewMessageBody() async throws {
+    let message = DolibarrTicketMessage(message: "<p>Done</p>", isPrivate: true, trackId: "aB3dE5gH7jK9mN1p")
+    let body = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(message)) as? [String: Any])
+
+    #expect(body.count == 3)
+    #expect(body["track_id"] as? String == "aB3dE5gH7jK9mN1p")
+    #expect(body["message"] as? String == "<p>Done</p>")
+    #expect(body["private"] as? Int == 1)
+
+    message.isPrivate = false
+    let publicBody = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(message)) as? [String: Any])
+    #expect(publicBody["private"] as? Int == 0)
+}
+
+@Test func ticketNewMessageRequiresTrackIdAndMessage() async throws {
+    #expect(throws: EncodingError.self) {
+        try JSONEncoder().encode(DolibarrTicketMessage(message: "Hello"))
+    }
+    #expect(throws: EncodingError.self) {
+        try JSONEncoder().encode(DolibarrTicketMessage(message: "", trackId: "abc"))
+    }
+}
+
+/// `GET /setup/dictionary/ticket_types`, `ticket_categories` and `ticket_severities` responses
+@Test func decodeTicketDictionaries() async throws {
+    let decoder = JSONDecoder()
+    let types = try decoder.decode([DolibarrTicketType].self, from: Data("""
+    [{"rowid": "1", "code": "COM", "pos": "1", "label": "Commercial question", "use_default": "0", "description": null},
+     {"rowid": 2, "code": "ISSUE", "pos": 2, "label": "Issue or bug", "use_default": "1", "description": ""}]
+    """.utf8))
+    #expect(types[0] == DolibarrTicketType(id: "1", code: "COM", label: "Commercial question", position: 1))
+    #expect(types[1].id == "2")
+    #expect(types[1].isDefault)
+    #expect(types[1].description == nil)
+
+    let categories = try decoder.decode([DolibarrTicketCategory].self, from: Data("""
+    [{"rowid": "1", "code": "OTHER", "pos": "10", "label": "Other", "use_default": "1", "description": "Anything else"}]
+    """.utf8))
+    #expect(categories[0] == DolibarrTicketCategory(id: "1", code: "OTHER", label: "Other", position: 10, isDefault: true, description: "Anything else"))
+
+    let severities = try decoder.decode([DolibarrTicketSeverity].self, from: Data("""
+    [{"rowid": "3", "code": "HIGH", "pos": "30", "label": "High", "use_default": "0", "color": "ff0000", "description": null},
+     {"rowid": "1", "code": "LOW", "pos": "10", "label": "Low", "use_default": "0", "color": "", "description": null}]
+    """.utf8))
+    #expect(severities[0].color == "ff0000")
+    #expect(severities[1].color == nil)
+}
+
+@Test func decodeTicketUserPermissions() async throws {
+    let json = """
+    {
+        "user": {
+            "user": {"lire": 1},
+            "self": {"creer": 1},
+            "user_advance": {"readperms": 1},
+            "self_advance": {"readperms": 1},
+            "group_advance": {"read": 1}
+        },
+        "ticket": {
+            "read": 1,
+            "write": 1,
+            "delete": 1,
+            "manage_advance": 1,
+            "export": 1,
+            "view": {"all": 1}
+        }
+    }
+    """
+    let decoder = JSONDecoder()
+    let permissions = try decoder.decode(DolibarrUserPermissions.self, from: Data(json.utf8))
+    let ticket = try #require(permissions.ticket)
+
+    #expect(ticket.read == 1)
+    #expect(ticket.write == 1)
+    #expect(ticket.delete == 1)
+    #expect(ticket.manageAdvance == 1)
+    #expect(ticket.export == 1)
+    #expect(ticket.view?["all"] == 1)
+
+    let redecoded = try decoder.decode(DolibarrUserPermissions.self, from: JSONEncoder().encode(permissions))
+    #expect(redecoded == permissions)
 }

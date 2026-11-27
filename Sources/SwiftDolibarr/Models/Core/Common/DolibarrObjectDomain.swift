@@ -45,4 +45,5 @@ public enum DolibarrObjectDomain: String, Sendable, Codable, Equatable, Hashable
     case supplierInvoice
     case contract
     case contractLine
+    case ticket
 }

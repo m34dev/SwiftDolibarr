@@ -55,16 +55,18 @@ Then add it to your target's dependencies:
 | **Products & Stock** | `DolibarrProduct`, `DolibarrWarehouse`, `DolibarrStockMovement` |
 | **Quotes** | `DolibarrQuote`, `DolibarrQuoteLine` |
 | **Orders** | `DolibarrOrder`, `DolibarrOrderLine` |
-| **Invoices** | `DolibarrInvoice`, `DolibarrInvoiceLine` |
+| **Invoices** | `DolibarrInvoice`, `DolibarrInvoiceLine`, `DolibarrPayment` |
 | **Contracts** | `DolibarrContract`, `DolibarrContractLine` |
 | **Suppliers / Purchases** | `DolibarrSupplierOrder`, `DolibarrSupplierOrderLine`, `DolibarrSupplierInvoice`, `DolibarrSupplierInvoiceLine` |
 | **Interventions** | `DolibarrIntervention`, `DolibarrInterventionLine` |
 | **Expense Reports** | `DolibarrExpenseReport`, `DolibarrExpenseReportLine` |
 | **Projects & Tasks** | `DolibarrProject`, `DolibarrTask` |
+| **Banks** | `DolibarrBankAccount` |
+| **Tickets** | `DolibarrTicket`, `DolibarrTicketMessage` |
 | **Agenda Events** | `DolibarrAgendaEvent` |
 | **Users** | `DolibarrUser`, `DolibarrUserPermissions` |
 | **Documents** | `DolibarrDocument`, `DolibarrDownloadedDocument` |
-| **Setup** | `DolibarrCountry`, `DolibarrExpenseReportType`, `DolibarrShippingMethod`, `DolibarrPaymentTerm`, `DolibarrOrderingMethod`, `DolibarrAvailability`, `DolibarrBusinessOrigin`, `DolibarrOrganization` |
+| **Setup** | `DolibarrCountry`, `DolibarrExpenseReportType`, `DolibarrShippingMethod`, `DolibarrPaymentTerm`, `DolibarrOrderingMethod`, `DolibarrAvailability`, `DolibarrBusinessOrigin`, `DolibarrOrganization`, `DolibarrTicketType`, `DolibarrTicketCategory`, `DolibarrTicketSeverity` |
 
 ### External
 
