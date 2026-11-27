@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org) using the following scheme: MAJOR.MINOR.PATCH
 
+## [0.76.0] - 2026-11-27
+
+### Added
+- Contract line expired flag, `DolibarrContractLine.isExpired`: an open service (status `4`) whose planned end date is in the past, as Dolibarr shows it
+  - Dolibarr has no expired status code, so `status` stays the open status
+- `DolibarrPayment`, a client or supplier invoice payment, decoded from two shapes:
+  - a client payment from `GET /paiements` and `GET /paiements/{id}`, Dolibarr v23+
+  - an entry of `GET /invoices/{id}/payments` or `GET /supplierinvoices/{id}/payments`, which has no ID: `id` is then built from the entry kind and `ref`, e.g. `payment-PAY2611-0001`, and the `YYYY-MM-DD HH:MM:SS` date string is read as GMT
+  - `DolibarrPayment.lineType` (`typeline`, Dolibarr v21+) tells payments from credit notes, deposits and excess received used on the invoice (`discount`)
+  - Encodes the body to add a payment, depending on `DolibarrPayment.invoiceKind`: `POST /invoices/paymentsdistributed` for a client invoice, which takes an amount, unlike `POST /invoices/{id}/payments`, or `POST /supplierinvoices/{id}/payments` for a supplier invoice, whose amount needs Dolibarr v19+
+  - Encoding throws when the invoice ID, date, a positive amount, the payment type ID or the bank account ID is missing: Dolibarr requires a bank account on both routes
+- `DolibarrBankAccount`, a bank or cash account from `GET /bankaccounts`, with its reference, label, type, closed flag, currency, bank name and balance
+- Bank user permissions, `DolibarrUserPermissions.bank` (`banque`, `DolibarrUserPermissionsBank`), only returned with the Banque module: reading bank accounts needs `read` (`lire`)
+  - Properties have English names: `read`, `modify` (`modifier`), `configure` (`configurer`), `consolidate`, `export`, `transfer` and `cheque`
+- Read-only invoice payment totals, `DolibarrInvoice.totalPaid` (`totalpaid`), `totalCreditNotes` (`totalcreditnotes`), `totalDeposits` (`totaldeposits`) and `remainToPay` (`remaintopay`), returned by `GET /invoices` and `GET /invoices/{id}`
+  - Decoded from a string or a number, never encoded, and they count in equality and hashing
+- `DolibarrTicket`, a helpdesk ticket from `GET /tickets` and `GET /tickets/{id}`, with its subject, initial message, tracking ID, third party, project, contract, creator and assigned user, type, category and severity codes and labels, progress, read, last message and closing dates, contacts and linked objects
+  - Ticket statuses in the new `.ticket` domain: `ticketNotRead` (`0`), `ticketRead` (`1`), `ticketAssigned` (`2`), `ticketInProgress` (`3`), `ticketNeedMoreInfo` (`5`), `ticketWaiting` (`7`), `ticketClosed` (`8`) and `ticketCanceled` (`9`), listed in `DolibarrObjectStatus.tickets`
+  - The create and update body never includes the status, sends the third party as both `socid` and `fk_soc`, and only sends the assigned user on create, as Dolibarr v25 rejects a changed assigned user on update
+  - Dolibarr never returns ticket notes, and `date_validation` is the read date, also available as `DolibarrTicket.dateRead`
+- `DolibarrTicketMessage`, a ticket message from the `messages` of a single ticket, with its author, dates, content and private flag
+  - Encodes the body to add a message, `POST /tickets/newmessage`: `track_id`, `message` and `private`. Encoding throws when the tracking ID or the message is empty
+- Ticket dictionaries `DolibarrTicketType`, `DolibarrTicketCategory` and `DolibarrTicketSeverity`, from `GET /setup/dictionary/ticket_types`, `ticket_categories` and `ticket_severities`, with their default flag and the severity colour
+- Ticket user permissions, `DolibarrUserPermissions.ticket` (`DolibarrUserPermissionsTicket`): `read`, `write`, `delete`, `manage_advance`, `export` and `view.all`
+
 ## [0.75.1] - 2026-11-26
 
 ### Fixed

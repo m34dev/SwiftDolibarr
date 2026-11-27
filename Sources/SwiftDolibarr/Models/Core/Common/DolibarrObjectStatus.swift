@@ -27,7 +27,7 @@ import Foundation
 /// object type the status applies to. Predefined static instances cover
 /// statuses for third parties, products, warehouses, quotes, orders,
 /// invoices, interventions, expense reports, projects, tasks,
-/// agenda events, contracts, and contract lines.
+/// agenda events, contracts, contract lines, and tickets.
 ///
 /// - SeeAlso: ``DolibarrObjectDomain``
 /// - SeeAlso: ``DolibarrBusinessObject``
@@ -337,6 +337,47 @@ public struct DolibarrObjectStatus: Identifiable, Equatable, Hashable, Sendable 
 
 	public static let contractLines: [DolibarrObjectStatus] = [
 		contractLineInactive, contractLineOpen, contractLineClosed
+	]
+
+	// Ticket
+
+	public static let ticketNotRead: DolibarrObjectStatus = .init(
+		code: "0",
+		domain: .ticket
+	)
+	public static let ticketRead: DolibarrObjectStatus = .init(
+		code: "1",
+		domain: .ticket
+	)
+	public static let ticketAssigned: DolibarrObjectStatus = .init(
+		code: "2",
+		domain: .ticket
+	)
+	public static let ticketInProgress: DolibarrObjectStatus = .init(
+		code: "3",
+		domain: .ticket
+	)
+	public static let ticketNeedMoreInfo: DolibarrObjectStatus = .init(
+		code: "5",
+		domain: .ticket
+	)
+	/// Only used when `TICKET_INCLUDE_SUSPENDED_STATUS` is enabled in Dolibarr
+	public static let ticketWaiting: DolibarrObjectStatus = .init(
+		code: "7",
+		domain: .ticket
+	)
+	public static let ticketClosed: DolibarrObjectStatus = .init(
+		code: "8",
+		domain: .ticket
+	)
+	public static let ticketCanceled: DolibarrObjectStatus = .init(
+		code: "9",
+		domain: .ticket
+	)
+
+	public static let tickets: [DolibarrObjectStatus] = [
+		ticketNotRead, ticketRead, ticketAssigned, ticketInProgress,
+		ticketNeedMoreInfo, ticketWaiting, ticketClosed, ticketCanceled
 	]
 
 	// MARK: - Protocol methods

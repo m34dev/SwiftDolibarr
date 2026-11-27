@@ -117,7 +117,49 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
 	/// - Mapped Dolibarr property: **close_note**
 	public var closeNote: String?
 
+	// Read-only
+
+	/// Total of the payments on the invoice, read-only
+	///
+	/// - Mapped Dolibarr property: **totalpaid**
+	public var totalPaid: String?
+
+	/// Total of the credit notes used on the invoice, read-only
+	///
+	/// - Mapped Dolibarr property: **totalcreditnotes**
+	public var totalCreditNotes: String?
+
+	/// Total of the deposits used on the invoice, read-only
+	///
+	/// - Mapped Dolibarr property: **totaldeposits**
+	public var totalDeposits: String?
+
+	/// Remaining amount to pay: total incl. tax minus payments, credit notes and deposits, read-only
+	///
+	/// - Mapped Dolibarr property: **remaintopay**
+	public var remainToPay: String?
+
 	// Computed
+
+	/// Total of the payments as a number
+	public var totalPaidValue: Double? {
+		totalPaid.flatMap(Double.init)
+	}
+
+	/// Total of the credit notes used as a number
+	public var totalCreditNotesValue: Double? {
+		totalCreditNotes.flatMap(Double.init)
+	}
+
+	/// Total of the deposits used as a number
+	public var totalDepositsValue: Double? {
+		totalDeposits.flatMap(Double.init)
+	}
+
+	/// Remaining amount to pay as a number
+	public var remainToPayValue: Double? {
+		remainToPay.flatMap(Double.init)
+	}
 
 	/// ID of the user who created the invoice
 	override public var createdByUserId: String? {
@@ -169,6 +211,10 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
 		case paidCode = "paye"
 		case closeCode = "close_code"
 		case closeNote = "close_note"
+		case totalPaid = "totalpaid"
+		case totalCreditNotes = "totalcreditnotes"
+		case totalDeposits = "totaldeposits"
+		case remainToPay = "remaintopay"
 	}
 
 	// MARK: - Inits
@@ -188,6 +234,10 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
 		externalContactIds: [String]? = nil,
 		closeCode: String? = nil,
 		closeNote: String? = nil,
+		totalPaid: String? = nil,
+		totalCreditNotes: String? = nil,
+		totalDeposits: String? = nil,
+		remainToPay: String? = nil,
 		thirdPartyId: String = "",
 		statusCode: String = "0",
 		ref: String = "",
@@ -216,6 +266,10 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
 		self.externalContactIds = externalContactIds
 		self.closeCode = closeCode
 		self.closeNote = closeNote
+		self.totalPaid = totalPaid
+		self.totalCreditNotes = totalCreditNotes
+		self.totalDeposits = totalDeposits
+		self.remainToPay = remainToPay
 		super.init(
 			thirdPartyId: thirdPartyId,
 			statusCode: statusCode,
@@ -253,6 +307,10 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
 			self.externalContactIds = try container.decodeIfPresent([String].self, forKey: .externalContactIds)
 			self.closeCode = try container.decodeIfPresent(String.self, forKey: .closeCode)
 			self.closeNote = try container.decodeIfPresent(String.self, forKey: .closeNote)
+			self.totalPaid = try container.decodeIfPresent(MultiType.self, forKey: .totalPaid)?.stringValue
+			self.totalCreditNotes = try container.decodeIfPresent(MultiType.self, forKey: .totalCreditNotes)?.stringValue
+			self.totalDeposits = try container.decodeIfPresent(MultiType.self, forKey: .totalDeposits)?.stringValue
+			self.remainToPay = try container.decodeIfPresent(MultiType.self, forKey: .remainToPay)?.stringValue
 			try super.init(from: decoder)
 			#if os(iOS) || os(macOS) || os(watchOS) || os(tvOS) || os(visionOS)
 			Logger.logWithoutSignal("\(Self.self).init.decoded", category: .api)
@@ -285,6 +343,10 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
         self.externalContactIds = source.externalContactIds
         self.closeCode = source.closeCode
         self.closeNote = source.closeNote
+        self.totalPaid = source.totalPaid
+        self.totalCreditNotes = source.totalCreditNotes
+        self.totalDeposits = source.totalDeposits
+        self.remainToPay = source.remainToPay
         super.init(copying: source)
     }
 
@@ -305,6 +367,10 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
         self.externalContactIds = source.externalContactIds
         self.closeCode = source.closeCode
         self.closeNote = source.closeNote
+        self.totalPaid = source.totalPaid
+        self.totalCreditNotes = source.totalCreditNotes
+        self.totalDeposits = source.totalDeposits
+        self.remainToPay = source.remainToPay
         super.copy(source)
     }
 
@@ -325,6 +391,10 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
 		hasher.combine(optional: externalContactIds)
 		hasher.combine(optional: closeCode)
 		hasher.combine(optional: closeNote)
+		hasher.combine(optional: totalPaid)
+		hasher.combine(optional: totalCreditNotes)
+		hasher.combine(optional: totalDeposits)
+		hasher.combine(optional: remainToPay)
 		super.hash(into: &hasher)
 	}
 
@@ -344,6 +414,10 @@ public final class DolibarrInvoice: CommonCommercialTransactionObject {
 		&& externalContactIds == other.externalContactIds
 		&& closeCode == other.closeCode
 		&& closeNote == other.closeNote
+		&& totalPaid == other.totalPaid
+		&& totalCreditNotes == other.totalCreditNotes
+		&& totalDeposits == other.totalDeposits
+		&& remainToPay == other.remainToPay
 		&& super.isEqual(to: other)
 	}
 

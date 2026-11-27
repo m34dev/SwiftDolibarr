@@ -26,7 +26,7 @@ import Foundation
 /// Groups module-specific permission structs covering user management,
 /// expense reports, invoices, products, services, interventions,
 /// third parties, agenda, quotes, orders, contracts, suppliers, categories,
-/// barcodes, stock, and projects.
+/// barcodes, stock, projects, bank, and tickets.
 ///
 /// - SeeAlso: ``DolibarrUser``
 public struct DolibarrUserPermissions: Codable, Hashable {
@@ -51,6 +51,36 @@ public struct DolibarrUserPermissions: Codable, Hashable {
 	public var projet: DolibarrUserPermissionsProject?
 	public var lareponse: DolibarrUserPermissionsLaReponse?
 	public var multicompany: DolibarrUserPermissionsMulticompany?
+	/// Bank permissions, only returned with the Banque module
+	///
+	/// - Mapped Dolibarr property: **banque**
+	public var bank: DolibarrUserPermissionsBank?
+	public var ticket: DolibarrUserPermissionsTicket?
+
+	// MARK: - Enums
+
+	enum CodingKeys: String, CodingKey {
+		case user
+		case expensereport
+		case facture
+		case produit
+		case service
+		case ficheinter
+		case societe
+		case agenda
+		case propale
+		case commande
+		case contrat
+		case fournisseur
+		case categorie
+		case barcode
+		case stock
+		case projet
+		case lareponse
+		case multicompany
+		case bank = "banque"
+		case ticket
+	}
 
 	// MARK: - Inits
 
@@ -72,7 +102,9 @@ public struct DolibarrUserPermissions: Codable, Hashable {
 		stock: DolibarrUserPermissionsStock? = nil,
 		projet: DolibarrUserPermissionsProject? = nil,
 		lareponse: DolibarrUserPermissionsLaReponse? = nil,
-		multicompany: DolibarrUserPermissionsMulticompany? = nil
+		multicompany: DolibarrUserPermissionsMulticompany? = nil,
+		bank: DolibarrUserPermissionsBank? = nil,
+		ticket: DolibarrUserPermissionsTicket? = nil
 	) {
 		self.user = user
 		self.expensereport = expensereport
@@ -92,6 +124,8 @@ public struct DolibarrUserPermissions: Codable, Hashable {
 		self.projet = projet
 		self.lareponse = lareponse
 		self.multicompany = multicompany
+		self.bank = bank
+		self.ticket = ticket
 	}
 
 	public init(from decoder: any Decoder) throws {
@@ -114,6 +148,8 @@ public struct DolibarrUserPermissions: Codable, Hashable {
 		self.projet = try container.decodeIfPresent(DolibarrUserPermissionsProject.self, forKey: .projet)
 		self.lareponse = try container.decodeIfPresent(DolibarrUserPermissionsLaReponse.self, forKey: .lareponse)
 		self.multicompany = try container.decodeIfPresent(DolibarrUserPermissionsMulticompany.self, forKey: .multicompany)
+		self.bank = try container.decodeIfPresent(DolibarrUserPermissionsBank.self, forKey: .bank)
+		self.ticket = try container.decodeIfPresent(DolibarrUserPermissionsTicket.self, forKey: .ticket)
 	}
 
 }

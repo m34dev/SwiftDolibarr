@@ -105,6 +105,16 @@ public final class DolibarrContractLine: CommonCommercialTransactionObjectLine {
 		return status
 	}
 
+	/// Open service whose planned end date has passed
+	///
+	/// Dolibarr has no expired status code: the line stays open (`4`) and Dolibarr
+	/// shows it as expired once its planned end date (``dateEnd``) is in the past.
+	/// A line without a planned end date never expires.
+	public var isExpired: Bool {
+		guard statusCode == DolibarrObjectStatus.contractLineOpen.code, let dateEnded else { return false }
+		return dateEnded < Date()
+	}
+
 	/// Planned service start date
 	public var dateStarted: Date? {
 		guard let dateStart else { return nil }
